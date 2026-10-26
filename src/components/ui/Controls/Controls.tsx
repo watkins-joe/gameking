@@ -94,7 +94,13 @@ function Controls({
               (canDraw ? false : !canDeal || isRoundActive)
             }
             text={canDraw ? "DRAW" : "DEAL"}
-            onButtonClick={canDraw ? onDraw : onDeal}
+            onButtonClick={() => {
+              if (canDraw) {
+                onDraw();
+              } else {
+                onDeal();
+              }
+            }}
           />
         </div>
       </div>

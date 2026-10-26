@@ -69,7 +69,9 @@ function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
   const [denomination, setDenomination] =
     useState<Denomination>(getInitialDenomination);
-  const [currentBetIndex, setCurrentBetIndex] = useState(DEFAULT_BETTING_INDEX);
+  const [currentBet, setCurrentBet] = useState<BetAmount>(
+    BETTING_OPTIONS[DEFAULT_BETTING_INDEX],
+  );
   const [balanceCents, setBalanceCents] = useState(getInitialBalanceCents);
   const [displayBalanceCents, setDisplayBalanceCents] = useState(balanceCents);
   const [winCredits, setWinCredits] = useState(0);
@@ -91,7 +93,6 @@ function Main() {
     useState(false);
   const [isCountingPayout, setIsCountingPayout] = useState(false);
 
-  const currentBet = BETTING_OPTIONS[currentBetIndex];
   const denominationValueCents = DENOMINATIONS[denomination].valueCents;
   const betCostCents = currentBet * denominationValueCents;
   const canAffordBet = balanceCents >= betCostCents;
@@ -138,11 +139,8 @@ function Main() {
     ) {
       return;
     }
-    const index = BETTING_OPTIONS.indexOf(amount);
-    if (index >= 0) {
-      setCurrentBetIndex(index);
-      setActiveBetColumn(amount);
-    }
+    setCurrentBet(amount);
+    setActiveBetColumn(amount);
   }
 
   function toggleCreditsMode() {
@@ -242,7 +240,7 @@ function Main() {
       return;
     }
 
-    setCurrentBetIndex(BETTING_OPTIONS.indexOf(bet));
+    setCurrentBet(bet);
     setBalanceCents((balance) => balance - wagerCostCents);
     setDisplayBalanceCents((balance) => balance - wagerCostCents);
     setWinCredits(0);
