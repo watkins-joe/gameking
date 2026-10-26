@@ -5,7 +5,11 @@ interface HandTitleProps {
 }
 
 function HandTitle({ title }: HandTitleProps) {
-  return <div className="title casino-font">{title}</div>;
+  return (
+    <div id="title" className="casino-font title">
+      {title}
+    </div>
+  );
 }
 
 export default HandTitle;
