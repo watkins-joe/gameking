@@ -43,10 +43,10 @@ function Controls({
           <Button disabled text="MENU" onButtonClick={() => undefined} />
         </div>
         <div className="controls--column">
+          <div className="bet">BET {currentBet}</div>
           <div className="denom">
             <img src="/assets/ui/denoms/25c.png" />
           </div>
-          <div className="bet">BET {currentBet}</div>
         </div>
         <div className="controls--column">
           <Button
@@ -59,7 +59,9 @@ function Controls({
             }
           />
           <Button
-            disabled={isDrawing || (canDraw ? false : !canDeal)}
+            disabled={
+              isDrawing || (canDraw ? false : !canDeal || isRoundActive)
+            }
             text={canDraw ? "DRAW" : "DEAL"}
             onButtonClick={canDraw ? onDraw : onDeal}
           />

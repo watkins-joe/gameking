@@ -26,6 +26,9 @@ import "./Main.scss";
 const CREDIT_VALUE_CENTS = 25;
 const STARTING_BALANCE_CENTS = 10_000;
 const DEAL_CARD_DELAY_MS = 120;
+const BASE_PAYOUT_COUNT_UP_MS = 1200;
+const EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS = 500;
+const MAX_PAYOUT_COUNT_UP_MS = 6700;
 
 interface HandResult {
   title: string;
@@ -36,7 +39,9 @@ function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
   const [currentBetIndex, setCurrentBetIndex] = useState(DEFAULT_BETTING_INDEX);
   const [balanceCents, setBalanceCents] = useState(STARTING_BALANCE_CENTS);
-  const [winCents, setWinCents] = useState(0);
+  const [displayBalanceCents, setDisplayBalanceCents] =
+    useState(STARTING_BALANCE_CENTS);
+  const [winCredits, setWinCredits] = useState(0);
   const [gameState, setGameState] = useState<GameState>(GAME_STATES.Game_Over);
   const [handState, setHandState] = useState<INITIAL_HAND_STATE_TYPE>(() =>
     INITIAL_HAND_STATE.map((card) => ({ ...card })),
@@ -44,6 +49,8 @@ function Main() {
   const [handResult, setHandResult] = useState<HandResult | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const dealTimeoutRef = useRef<number | null>(null);
+  const payoutAnimationFrameRef = useRef<number | null>(null);
+  const [isCountingPayout, setIsCountingPayout] = useState(false);
 
   const currentBet = BETTING_OPTIONS[currentBetIndex];
   const betCostCents = currentBet * CREDIT_VALUE_CENTS;
@@ -54,12 +61,21 @@ function Main() {
       if (dealTimeoutRef.current !== null) {
         window.clearTimeout(dealTimeoutRef.current);
       }
+      if (payoutAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(payoutAnimationFrameRef.current);
+      }
     },
     [],
   );
 
   function changeBet(amount: BetAmount) {
-    if (gameState !== GAME_STATES.Game_Over || isDrawing) return;
+    if (
+      gameState !== GAME_STATES.Game_Over ||
+      isDrawing ||
+      isCountingPayout
+    ) {
+      return;
+    }
     const index = BETTING_OPTIONS.indexOf(amount);
     if (index >= 0) setCurrentBetIndex(index);
   }
@@ -108,12 +124,18 @@ function Main() {
   }
 
   function handleDeal() {
-    if (gameState !== GAME_STATES.Game_Over || isDrawing || !canAffordBet) {
+    if (
+      gameState !== GAME_STATES.Game_Over ||
+      isDrawing ||
+      isCountingPayout ||
+      !canAffordBet
+    ) {
       return;
     }
 
     setBalanceCents((balance) => balance - betCostCents);
-    setWinCents(0);
+    setDisplayBalanceCents((balance) => balance - betCostCents);
+    setWinCredits(0);
     setHandResult(null);
     setGameState(GAME_STATES.Game_Over);
 
@@ -127,15 +149,21 @@ function Main() {
   }
 
   function handleDraw() {
-    if (gameState !== GAME_STATES.Awaiting_Holds || isDrawing) return;
+    if (
+      gameState !== GAME_STATES.Awaiting_Holds ||
+      isDrawing ||
+      isCountingPayout
+    ) {
+      return;
+    }
 
-    const heldCardIds = new Set(
+    const dealtCardIds = new Set(
       handState.flatMap((card) =>
-        card.isHeld && card.cardId !== null ? [card.cardId] : [],
+        card.cardId === null ? [] : [card.cardId],
       ),
     );
     const replacementCards = shuffle(
-      CARDS.filter((cardId) => !heldCardIds.has(cardId)),
+      CARDS.filter((cardId) => !dealtCardIds.has(cardId)),
     );
     const finalHand = handState.map((card) =>
       card.isHeld
@@ -144,7 +172,7 @@ function Main() {
     );
 
     setHandResult(null);
-    setWinCents(0);
+    setWinCredits(0);
     showCards(finalHand, (drawnCards) => {
       const cardIds = drawnCards.flatMap((card) =>
         card.cardId === null ? [] : [card.cardId],
@@ -163,9 +191,46 @@ function Main() {
       const payoutCents = (result?.payoutCredits ?? 0) * CREDIT_VALUE_CENTS;
 
       setHandResult(result);
-      setWinCents(payoutCents);
       setBalanceCents((balance) => balance + payoutCents);
       setGameState(GAME_STATES.Game_Over);
+
+      if (!result || payoutCents === 0) {
+        setWinCredits(0);
+        setIsCountingPayout(false);
+        return;
+      }
+
+      const startingBalanceCents = displayBalanceCents;
+      const startTime = performance.now();
+      const duration = Math.min(
+        MAX_PAYOUT_COUNT_UP_MS,
+        BASE_PAYOUT_COUNT_UP_MS +
+          (payoutCents / 10_000) *
+            EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS,
+      );
+      setIsCountingPayout(true);
+
+      const countUp = (currentTime: number) => {
+        const progress = Math.min(
+          (currentTime - startTime) / duration,
+          1,
+        );
+        setDisplayBalanceCents(
+          Math.round(startingBalanceCents + payoutCents * progress),
+        );
+        setWinCredits(Math.round(result.payoutCredits * progress));
+
+        if (progress < 1) {
+          payoutAnimationFrameRef.current = requestAnimationFrame(countUp);
+        } else {
+          payoutAnimationFrameRef.current = null;
+          setDisplayBalanceCents(startingBalanceCents + payoutCents);
+          setWinCredits(result.payoutCredits);
+          setIsCountingPayout(false);
+        }
+      };
+
+      payoutAnimationFrameRef.current = requestAnimationFrame(countUp);
     });
   }
 
@@ -178,7 +243,8 @@ function Main() {
     );
   }
 
-  const isRoundActive = gameState === GAME_STATES.Awaiting_Holds || isDrawing;
+  const isRoundActive =
+    gameState === GAME_STATES.Awaiting_Holds || isDrawing || isCountingPayout;
 
   return (
     <div className="main-container">
@@ -191,10 +257,10 @@ function Main() {
         onCardClick={handleCardClick}
       />
       <div id="meters">
-        <WinMeter winAmount={winCents / 100} />
+        <WinMeter winCredits={winCredits} />
         <CreditMeter
           creditsMode={isCreditsMode}
-          amount={balanceCents / 100}
+          amount={displayBalanceCents / 100}
           onModeChange={toggleCreditsMode}
         />
       </div>

@@ -1,13 +1,13 @@
 import "./WinMeter.scss";
 
 interface WinMeterProps {
-  winAmount: number;
+  winCredits: number;
 }
 
-function WinMeter({ winAmount }: WinMeterProps) {
+function WinMeter({ winCredits }: WinMeterProps) {
   return (
     <div className="casino-font">
-      WIN {winAmount > 0 ? `$${winAmount.toFixed(2)}` : ""}
+      WIN {winCredits > 0 ? Math.floor(winCredits).toLocaleString() : ""}
     </div>
   );
 }
