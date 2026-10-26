@@ -37,13 +37,15 @@ function Controls({
       <div className="controls--container">
         <div className="controls--column">
           <Button
-            disabled={
-              !canChangeBet || currentBetIndex === BETTING_OPTIONS.length - 1
-            }
+            disabled={!canChangeBet}
             text="BET UP"
             onButtonClick={() => {
               const nextBet = BETTING_OPTIONS[currentBetIndex + 1];
-              if (nextBet !== undefined) onBetChange(nextBet);
+              if (nextBet === undefined) {
+                onBetChange(1);
+              } else {
+                onBetChange(nextBet);
+              }
             }}
           />
           <Button disabled text="MENU" onButtonClick={() => undefined} />
