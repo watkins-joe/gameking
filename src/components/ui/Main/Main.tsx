@@ -26,11 +26,13 @@ import "./Main.scss";
 const CREDIT_VALUE_CENTS = 25;
 const STARTING_BALANCE_CENTS = 10_000;
 const DEAL_CARD_DELAY_MS = 120;
+const BET_COLUMN_DELAY_MS = 180;
 const BASE_PAYOUT_COUNT_UP_MS = 1200;
 const EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS = 500;
 const MAX_PAYOUT_COUNT_UP_MS = 6700;
 
 interface HandResult {
+  rank: keyof typeof HAND_DISPLAY_NAMES;
   title: string;
   payoutCredits: number;
 }
@@ -48,6 +50,10 @@ function Main() {
   );
   const [handResult, setHandResult] = useState<HandResult | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isBetting, setIsBetting] = useState(false);
+  const [activeBetColumn, setActiveBetColumn] = useState<BetAmount | null>(
+    null,
+  );
   const dealTimeoutRef = useRef<number | null>(null);
   const payoutAnimationFrameRef = useRef<number | null>(null);
   const [isCountingPayout, setIsCountingPayout] = useState(false);
@@ -72,6 +78,7 @@ function Main() {
     if (
       gameState !== GAME_STATES.Game_Over ||
       isDrawing ||
+      isBetting ||
       isCountingPayout
     ) {
       return;
@@ -127,6 +134,7 @@ function Main() {
     if (
       gameState !== GAME_STATES.Game_Over ||
       isDrawing ||
+      isBetting ||
       isCountingPayout ||
       !canAffordBet
     ) {
@@ -139,13 +147,38 @@ function Main() {
     setHandResult(null);
     setGameState(GAME_STATES.Game_Over);
 
-    const dealtCards = shuffle(CARDS)
-      .slice(0, INITIAL_HAND_STATE.length)
-      .map((cardId) => ({ cardId, isHeld: false }));
+    setActiveBetColumn(null);
+    setIsBetting(true);
 
-    showCards(dealtCards, () => {
-      setGameState(GAME_STATES.Awaiting_Holds);
-    });
+    const dealCards = () => {
+      setIsBetting(false);
+      const dealtCards = shuffle(CARDS)
+        .slice(0, INITIAL_HAND_STATE.length)
+        .map((cardId) => ({ cardId, isHeld: false }));
+
+      showCards(dealtCards, () => {
+        setGameState(GAME_STATES.Awaiting_Holds);
+      });
+    };
+
+    const highlightBetColumn = (betIndex: number) => {
+      const bet = BETTING_OPTIONS[betIndex];
+      if (bet === undefined || betIndex > currentBet) {
+        dealCards();
+        return;
+      }
+
+      setActiveBetColumn(bet);
+      dealTimeoutRef.current = window.setTimeout(() => {
+        if (betIndex === currentBet) {
+          dealCards();
+        } else {
+          highlightBetColumn(betIndex + 1);
+        }
+      }, BET_COLUMN_DELAY_MS);
+    };
+
+    highlightBetColumn(1);
   }
 
   function handleDraw() {
@@ -185,6 +218,7 @@ function Main() {
         rank === HAND_TYPES.HIGH_CARD
           ? null
           : {
+              rank,
               title: HAND_DISPLAY_NAMES[rank],
               payoutCredits: PAYOUTS_PER_BET[currentBet][rank],
             };
@@ -244,11 +278,17 @@ function Main() {
   }
 
   const isRoundActive =
-    gameState === GAME_STATES.Awaiting_Holds || isDrawing || isCountingPayout;
+    gameState === GAME_STATES.Awaiting_Holds ||
+    isDrawing ||
+    isBetting ||
+    isCountingPayout;
 
   return (
     <div className="main-container">
-      <Paytable />
+      <Paytable
+        activeBet={activeBetColumn}
+        winningHand={handResult?.rank ?? null}
+      />
       <HandTitle title={handResult?.title ?? ""} />
       <InteractiveHand
         gameState={gameState}
@@ -268,6 +308,7 @@ function Main() {
         currentBet={currentBet}
         canDeal={canAffordBet}
         isRoundActive={isRoundActive}
+        isBetting={isBetting}
         canDraw={gameState === GAME_STATES.Awaiting_Holds}
         isDrawing={isDrawing}
         onBetChange={changeBet}

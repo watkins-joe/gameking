@@ -6,6 +6,7 @@ interface ControlsProps {
   currentBet: BetAmount;
   canDeal: boolean;
   isRoundActive: boolean;
+  isBetting: boolean;
   canDraw: boolean;
   isDrawing: boolean;
   onBetChange: (bet: BetAmount) => void;
@@ -17,6 +18,7 @@ function Controls({
   currentBet,
   canDeal,
   isRoundActive,
+  isBetting,
   canDraw,
   isDrawing,
   onBetChange,
@@ -60,7 +62,9 @@ function Controls({
           />
           <Button
             disabled={
-              isDrawing || (canDraw ? false : !canDeal || isRoundActive)
+              isDrawing ||
+              isBetting ||
+              (canDraw ? false : !canDeal || isRoundActive)
             }
             text={canDraw ? "DRAW" : "DEAL"}
             onButtonClick={canDraw ? onDraw : onDeal}

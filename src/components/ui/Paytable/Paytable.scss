@@ -24,6 +24,11 @@
       border-right: 0;
     }
 
+    &.is-active-bet {
+      background-color: #ca0234;
+      color: #fff800;
+    }
+
     > div {
       flex: 1;
       min-height: 1.1em;
@@ -38,6 +43,10 @@
 
     .paytable-hand {
       justify-content: flex-start;
+
+      > span.is-winning {
+        color: #fff;
+      }
 
       > span:first-child {
         flex: none;
@@ -55,5 +64,9 @@
 
   .paytable-column:last-child {
     padding-right: 0.15rem;
+  }
+
+  .paytable-payout.is-winning {
+    color: #fff;
   }
 }
