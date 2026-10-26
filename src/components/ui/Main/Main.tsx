@@ -32,7 +32,6 @@ const STARTING_BALANCE_CENTS = 100_000;
 const DEAL_CARD_DELAY_MS = 120;
 const BET_COLUMN_DELAY_MS = 180;
 const RESET_CONFIRMATION_TIMEOUT_MS = 5000;
-const DEBUG_ROYAL_FLUSH_CARD_IDS = [8, 9, 10, 11, 12];
 const BASE_PAYOUT_COUNT_UP_MS = 1200;
 const EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS = 500;
 const MAX_PAYOUT_COUNT_UP_MS = 6700;
@@ -222,10 +221,12 @@ function Main() {
 
     const dealCards = () => {
       setIsBetting(false);
-      const dealtCards = DEBUG_ROYAL_FLUSH_CARD_IDS.map((cardId) => ({
+      const dealtCards = shuffle(CARDS)
+        .slice(0, INITIAL_HAND_STATE.length)
+        .map((cardId) => ({
         cardId,
         isHeld: false,
-      }));
+        }));
 
       showCards(dealtCards, () => {
         setHandResult(getHandResult(dealtCards));
