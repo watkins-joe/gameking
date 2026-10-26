@@ -7,11 +7,13 @@ interface ControlsProps {
   canDeal: boolean;
   isRoundActive: boolean;
   isBetting: boolean;
+  isResetConfirmationActive: boolean;
   canDraw: boolean;
   isDrawing: boolean;
   onBetChange: (bet: BetAmount) => void;
   onDeal: () => void;
   onDraw: () => void;
+  onResetBalance: () => void;
 }
 
 function Controls({
@@ -19,11 +21,13 @@ function Controls({
   canDeal,
   isRoundActive,
   isBetting,
+  isResetConfirmationActive,
   canDraw,
   isDrawing,
   onBetChange,
   onDeal,
   onDraw,
+  onResetBalance,
 }: ControlsProps) {
   const currentBetIndex = BETTING_OPTIONS.indexOf(currentBet);
   const canChangeBet = !isRoundActive;
@@ -72,7 +76,15 @@ function Controls({
         </div>
       </div>
       <div className="game-info">
-        <div>DOUBLE DBL BONUS</div>
+        <button
+          aria-label="Reset balance by clicking twice"
+          className={`game-name${isResetConfirmationActive ? " confirming" : ""}`}
+          disabled={isRoundActive}
+          onClick={onResetBalance}
+          type="button"
+        >
+          {isResetConfirmationActive ? "ARE YOU SURE?" : "DOUBLE DBL BONUS"}
+        </button>
         <div>{canDraw ? "SELECT HOLDS" : "GAME OVER"}</div>
       </div>
     </>

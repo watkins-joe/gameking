@@ -15,6 +15,10 @@ import {
 } from "../../../config/hands";
 import { CARDS, shuffle } from "../../../utils/cards";
 import { evaluateHand } from "../../../utils/evaluateHands";
+import {
+  loadBalanceCents,
+  saveBalanceCents,
+} from "../../../utils/balanceStorage";
 import Controls from "../Controls/Controls";
 import { CreditMeter } from "../CreditsCounter/CreditsCounter";
 import HandTitle from "../HandTitle/HandTitle";
@@ -24,9 +28,10 @@ import WinMeter from "../WinMeter/WinMeter";
 import "./Main.scss";
 
 const CREDIT_VALUE_CENTS = 25;
-const STARTING_BALANCE_CENTS = 10_000;
+const STARTING_BALANCE_CENTS = 100_000;
 const DEAL_CARD_DELAY_MS = 120;
 const BET_COLUMN_DELAY_MS = 180;
+const RESET_CONFIRMATION_TIMEOUT_MS = 5000;
 const DEBUG_ROYAL_FLUSH_CARD_IDS = [8, 9, 10, 11, 12];
 const BASE_PAYOUT_COUNT_UP_MS = 1200;
 const EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS = 500;
@@ -38,12 +43,21 @@ interface HandResult {
   payoutCredits: number;
 }
 
+function getInitialBalanceCents(): number {
+  try {
+    return loadBalanceCents(window.localStorage, STARTING_BALANCE_CENTS);
+  } catch (error) {
+    console.error("Unable to load the saved bank balance.", error);
+    return STARTING_BALANCE_CENTS;
+  }
+}
+
 function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
   const [currentBetIndex, setCurrentBetIndex] = useState(DEFAULT_BETTING_INDEX);
-  const [balanceCents, setBalanceCents] = useState(STARTING_BALANCE_CENTS);
+  const [balanceCents, setBalanceCents] = useState(getInitialBalanceCents);
   const [displayBalanceCents, setDisplayBalanceCents] = useState(
-    STARTING_BALANCE_CENTS,
+    balanceCents,
   );
   const [winCredits, setWinCredits] = useState(0);
   const [gameState, setGameState] = useState<GameState>(GAME_STATES.Game_Over);
@@ -58,6 +72,9 @@ function Main() {
   );
   const dealTimeoutRef = useRef<number | null>(null);
   const payoutAnimationFrameRef = useRef<number | null>(null);
+  const resetConfirmationTimeoutRef = useRef<number | null>(null);
+  const [isResetConfirmationActive, setIsResetConfirmationActive] =
+    useState(false);
   const [isCountingPayout, setIsCountingPayout] = useState(false);
 
   const currentBet = BETTING_OPTIONS[currentBetIndex];
@@ -72,9 +89,20 @@ function Main() {
       if (payoutAnimationFrameRef.current !== null) {
         cancelAnimationFrame(payoutAnimationFrameRef.current);
       }
+      if (resetConfirmationTimeoutRef.current !== null) {
+        window.clearTimeout(resetConfirmationTimeoutRef.current);
+      }
     },
     [],
   );
+
+  useEffect(() => {
+    try {
+      saveBalanceCents(window.localStorage, balanceCents);
+    } catch (error) {
+      console.error("Unable to save the bank balance.", error);
+    }
+  }, [balanceCents]);
 
   function changeBet(amount: BetAmount) {
     if (
@@ -91,6 +119,27 @@ function Main() {
 
   function toggleCreditsMode() {
     setIsCreditsMode((previous) => !previous);
+  }
+
+  function handleResetBalance() {
+    if (isRoundActive) return;
+
+    if (!isResetConfirmationActive) {
+      setIsResetConfirmationActive(true);
+      resetConfirmationTimeoutRef.current = window.setTimeout(() => {
+        setIsResetConfirmationActive(false);
+        resetConfirmationTimeoutRef.current = null;
+      }, RESET_CONFIRMATION_TIMEOUT_MS);
+      return;
+    }
+
+    if (resetConfirmationTimeoutRef.current !== null) {
+      window.clearTimeout(resetConfirmationTimeoutRef.current);
+      resetConfirmationTimeoutRef.current = null;
+    }
+    setIsResetConfirmationActive(false);
+    setBalanceCents(STARTING_BALANCE_CENTS);
+    setDisplayBalanceCents(STARTING_BALANCE_CENTS);
   }
 
   function showCards(
@@ -311,11 +360,13 @@ function Main() {
         canDeal={canAffordBet}
         isRoundActive={isRoundActive}
         isBetting={isBetting}
+        isResetConfirmationActive={isResetConfirmationActive}
         canDraw={gameState === GAME_STATES.Awaiting_Holds}
         isDrawing={isDrawing}
         onBetChange={changeBet}
         onDeal={handleDeal}
         onDraw={handleDraw}
+        onResetBalance={handleResetBalance}
       />
     </div>
   );
