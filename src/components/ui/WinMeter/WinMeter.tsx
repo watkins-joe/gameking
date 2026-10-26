@@ -5,9 +5,15 @@ interface WinMeterProps {
 }
 
 function WinMeter({ winCredits }: WinMeterProps) {
+  const hasWin = winCredits > 0;
+
   return (
-    <div className="casino-font">
-      WIN {winCredits > 0 ? Math.floor(winCredits).toLocaleString() : ""}
+    <div
+      className={`win-meter casino-font${hasWin ? " is-visible" : ""}`}
+      aria-live="polite"
+      aria-hidden={!hasWin}
+    >
+      WIN {hasWin ? Math.floor(winCredits).toLocaleString() : ""}
     </div>
   );
 }

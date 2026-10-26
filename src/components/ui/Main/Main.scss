@@ -8,6 +8,10 @@
 #meters {
   display: flex;
   justify-content: space-between;
-  font-size: 0.5rem; // FIXME: not working due to .casino-font class.
   margin-top: 0.7rem;
+
+  .casino-font {
+    font-size: 2.5rem;
+    letter-spacing: 1px;
+  }
 }
