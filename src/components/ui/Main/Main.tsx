@@ -18,7 +18,7 @@ function Main() {
         amount={amount}
         onModeChange={toggleCreditsMode}
       />
-      <img src="/assets/cards/00.png" />
+      {/* <img src="/assets/cards/00.png" /> */}
     </div>
   );
 }
