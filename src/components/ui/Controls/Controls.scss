@@ -21,6 +21,18 @@
 
     .denom {
       text-align: center;
+
+      button {
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+
+        &:disabled {
+          cursor: default;
+        }
+      }
+
       img {
         height: 4.5rem;
       }

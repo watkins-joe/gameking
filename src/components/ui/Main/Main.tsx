@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import {
   BETTING_OPTIONS,
   DEFAULT_BETTING_INDEX,
+  DENOMINATIONS,
   GAME_STATES,
   HAND_DISPLAY_NAMES,
   HAND_TYPES,
   PAYOUTS_PER_BET,
   type BetAmount,
+  type Denomination,
   type GameState,
 } from "../../../config/gameConfig";
 import {
@@ -15,7 +17,9 @@ import {
 } from "../../../config/hands";
 import {
   loadBalanceCents,
+  loadDenomination,
   saveBalanceCents,
+  saveDenomination,
 } from "../../../utils/balanceStorage";
 import { CARDS, shuffle } from "../../../utils/cards";
 import { evaluateHand } from "../../../utils/evaluateHands";
@@ -28,7 +32,7 @@ import Paytable from "../Paytable/Paytable";
 import WinMeter from "../WinMeter/WinMeter";
 import "./Main.scss";
 
-const CREDIT_VALUE_CENTS = 25;
+const DEFAULT_DENOMINATION: Denomination = "25c";
 const STARTING_BALANCE_CENTS = 100_000;
 const DEAL_CARD_DELAY_MS = 120;
 const BET_COLUMN_DELAY_MS = 180;
@@ -52,8 +56,19 @@ function getInitialBalanceCents(): number {
   }
 }
 
+function getInitialDenomination(): Denomination {
+  try {
+    return loadDenomination(window.localStorage, DEFAULT_DENOMINATION);
+  } catch (error) {
+    console.error("Unable to load the saved denomination.", error);
+    return DEFAULT_DENOMINATION;
+  }
+}
+
 function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
+  const [denomination, setDenomination] =
+    useState<Denomination>(getInitialDenomination);
   const [currentBetIndex, setCurrentBetIndex] = useState(DEFAULT_BETTING_INDEX);
   const [balanceCents, setBalanceCents] = useState(getInitialBalanceCents);
   const [displayBalanceCents, setDisplayBalanceCents] = useState(balanceCents);
@@ -77,8 +92,11 @@ function Main() {
   const [isCountingPayout, setIsCountingPayout] = useState(false);
 
   const currentBet = BETTING_OPTIONS[currentBetIndex];
-  const betCostCents = currentBet * CREDIT_VALUE_CENTS;
+  const denominationValueCents = DENOMINATIONS[denomination].valueCents;
+  const betCostCents = currentBet * denominationValueCents;
   const canAffordBet = balanceCents >= betCostCents;
+  const maxBet = BETTING_OPTIONS[BETTING_OPTIONS.length - 1];
+  const canAffordMaxBet = balanceCents >= maxBet * denominationValueCents;
 
   useEffect(
     () => () => {
@@ -102,6 +120,14 @@ function Main() {
       console.error("Unable to save the bank balance.", error);
     }
   }, [balanceCents]);
+
+  useEffect(() => {
+    try {
+      saveDenomination(window.localStorage, denomination);
+    } catch (error) {
+      console.error("Unable to save the selected denomination.", error);
+    }
+  }, [denomination]);
 
   function changeBet(amount: BetAmount) {
     if (
@@ -183,7 +209,10 @@ function Main() {
     revealNext();
   }
 
-  function getHandResult(cards: INITIAL_HAND_STATE_TYPE): HandResult | null {
+  function getHandResult(
+    cards: INITIAL_HAND_STATE_TYPE,
+    bet: BetAmount = currentBet,
+  ): HandResult | null {
     const cardIds = cards.flatMap((card) =>
       card.cardId === null ? [] : [card.cardId],
     );
@@ -197,23 +226,25 @@ function Main() {
       : {
           rank,
           title: HAND_DISPLAY_NAMES[rank],
-          payoutCredits: PAYOUTS_PER_BET[currentBet][rank],
+          payoutCredits: PAYOUTS_PER_BET[bet][rank],
         };
   }
 
-  function handleDeal() {
+  function handleDeal(bet: BetAmount = currentBet) {
+    const wagerCostCents = bet * denominationValueCents;
     if (
       gameState !== GAME_STATES.Game_Over ||
       isDrawing ||
       isBetting ||
       isCountingPayout ||
-      !canAffordBet
+      balanceCents < wagerCostCents
     ) {
       return;
     }
 
-    setBalanceCents((balance) => balance - betCostCents);
-    setDisplayBalanceCents((balance) => balance - betCostCents);
+    setCurrentBetIndex(BETTING_OPTIONS.indexOf(bet));
+    setBalanceCents((balance) => balance - wagerCostCents);
+    setDisplayBalanceCents((balance) => balance - wagerCostCents);
     setWinCredits(0);
     setHandResult(null);
     setGameState(GAME_STATES.Game_Over);
@@ -232,18 +263,19 @@ function Main() {
         }));
 
       showCards(dealtCards, () => {
-        setHandResult(getHandResult(dealtCards));
+        setHandResult(getHandResult(dealtCards, bet));
         setGameState(GAME_STATES.Awaiting_Holds);
       });
     };
 
-    const highlightBetColumn = (bet: BetAmount) => {
-      setActiveBetColumn(bet);
+    const highlightBetColumn = (highlightedBet: BetAmount) => {
+      setActiveBetColumn(highlightedBet);
       dealTimeoutRef.current = window.setTimeout(() => {
-        if (bet === currentBet) {
+        if (highlightedBet === bet) {
           dealCards();
         } else {
-          const nextBet = BETTING_OPTIONS[BETTING_OPTIONS.indexOf(bet) + 1];
+          const nextBet =
+            BETTING_OPTIONS[BETTING_OPTIONS.indexOf(highlightedBet) + 1];
           if (nextBet === undefined) {
             dealCards();
           } else {
@@ -281,7 +313,8 @@ function Main() {
     setWinCredits(0);
     showCards(finalHand, (drawnCards) => {
       const result = getHandResult(drawnCards);
-      const payoutCents = (result?.payoutCredits ?? 0) * CREDIT_VALUE_CENTS;
+      const payoutCents =
+        (result?.payoutCredits ?? 0) * denominationValueCents;
 
       setHandResult(result);
       setBalanceCents((balance) => balance + payoutCents);
@@ -336,6 +369,11 @@ function Main() {
     setIsDenomModalOpen((prevState) => !prevState);
   }
 
+  function handleDenominationChange(nextDenomination: Denomination) {
+    if (isRoundActive) return;
+    setDenomination(nextDenomination);
+  }
+
   const isRoundActive =
     gameState === GAME_STATES.Awaiting_Holds ||
     isDrawing ||
@@ -344,7 +382,13 @@ function Main() {
 
   return (
     <div className="main-container">
-      {isDenomModalOpen && <DenomModal handleDenomClick={handleDenomClick} />}
+      {isDenomModalOpen && (
+        <DenomModal
+          selectedDenomination={denomination}
+          onClose={handleDenomClick}
+          onDenominationChange={handleDenominationChange}
+        />
+      )}
       <Paytable
         activeBet={activeBetColumn}
         winningHand={handResult?.rank ?? null}
@@ -360,13 +404,16 @@ function Main() {
         <WinMeter winCredits={winCredits} />
         <CreditMeter
           creditsMode={isCreditsMode}
-          amount={displayBalanceCents / 100}
+          balanceCents={displayBalanceCents}
+          denominationValueCents={denominationValueCents}
           onModeChange={toggleCreditsMode}
         />
       </div>
       <Controls
         currentBet={currentBet}
+        denomination={denomination}
         canDeal={canAffordBet}
+        canBetMax={canAffordMaxBet}
         isRoundActive={isRoundActive}
         isBetting={isBetting}
         isResetConfirmationActive={isResetConfirmationActive}

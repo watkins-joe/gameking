@@ -1,17 +1,24 @@
-import { BETTING_OPTIONS, type BetAmount } from "../../../config/gameConfig";
+import {
+  BETTING_OPTIONS,
+  DENOMINATIONS,
+  type BetAmount,
+  type Denomination,
+} from "../../../config/gameConfig";
 import Button from "../Button/Button";
 import "./Controls.scss";
 
 interface ControlsProps {
   currentBet: BetAmount;
+  denomination: Denomination;
   canDeal: boolean;
+  canBetMax: boolean;
   isRoundActive: boolean;
   isBetting: boolean;
   isResetConfirmationActive: boolean;
   canDraw: boolean;
   isDrawing: boolean;
   onBetChange: (bet: BetAmount) => void;
-  onDeal: () => void;
+  onDeal: (bet?: BetAmount) => void;
   onDraw: () => void;
   onResetBalance: () => void;
   onDenomClick: () => void;
@@ -19,7 +26,9 @@ interface ControlsProps {
 
 function Controls({
   currentBet,
+  denomination,
   canDeal,
+  canBetMax,
   isRoundActive,
   isBetting,
   isResetConfirmationActive,
@@ -55,16 +64,27 @@ function Controls({
         <div className="controls--column">
           <div className="bet">BET {currentBet}</div>
           <div className="denom">
-            <img onClick={onDenomClick} src="/assets/ui/denoms/25c.png" />
+            <button
+              aria-label="Change denomination"
+              disabled={isRoundActive}
+              onClick={onDenomClick}
+              type="button"
+            >
+              <img
+                alt={`${denomination} denomination`}
+                src={`/assets/ui/denoms/${DENOMINATIONS[denomination].image}`}
+              />
+            </button>
           </div>
         </div>
         <div className="controls--column">
           <Button
-            disabled={!canChangeBet}
+            disabled={!canChangeBet || !canBetMax}
             text="BET MAX"
             onButtonClick={() => {
-              onBetChange(BETTING_OPTIONS[BETTING_OPTIONS.length - 1]);
-              onDeal();
+              const maxBet = BETTING_OPTIONS[BETTING_OPTIONS.length - 1];
+              onBetChange(maxBet);
+              onDeal(maxBet);
             }}
           />
           <Button

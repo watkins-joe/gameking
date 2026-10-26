@@ -28,8 +28,22 @@
   }
 
   &-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+    border-radius: 0.4rem;
+    padding: 0.2rem;
+    background: transparent;
+    cursor: pointer;
+
     img {
+      display: block;
       height: 3rem;
+    }
+
+    &.is-selected {
+      border-color: #fff800;
     }
   }
 
