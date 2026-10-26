@@ -58,13 +58,12 @@ function Controls({
         </div>
         <div className="controls--column">
           <Button
-            disabled={
-              !canChangeBet || currentBetIndex === BETTING_OPTIONS.length - 1
-            }
+            disabled={!canChangeBet}
             text="BET MAX"
-            onButtonClick={() =>
-              onBetChange(BETTING_OPTIONS[BETTING_OPTIONS.length - 1])
-            }
+            onButtonClick={() => {
+              onBetChange(BETTING_OPTIONS[BETTING_OPTIONS.length - 1]);
+              onDeal();
+            }}
           />
           <Button
             disabled={
