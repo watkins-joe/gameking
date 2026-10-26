@@ -4,6 +4,7 @@ import "./Controls.scss";
 function Controls() {
   return (
     <>
+      <div className="bet">BET 5</div>
       <div className="controls--container">
         <div className="controls--column">
           <Button

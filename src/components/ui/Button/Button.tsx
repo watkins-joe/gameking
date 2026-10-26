@@ -8,7 +8,11 @@ interface ButtonProps {
 
 function Button({ disabled, text, onButtonClick }: ButtonProps) {
   return (
-    <button disabled={disabled} onClick={onButtonClick}>
+    <button
+      className="casino-button"
+      disabled={disabled}
+      onClick={onButtonClick}
+    >
       {text}
     </button>
   );
