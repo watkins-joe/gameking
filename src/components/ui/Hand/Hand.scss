@@ -1,0 +1,11 @@
+.hand {
+  display: flex;
+  gap: 0.1rem;
+  margin: 0 0.1rem;
+
+  img {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+}
