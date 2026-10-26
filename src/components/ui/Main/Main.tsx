@@ -15,7 +15,7 @@ function Main() {
     setIsCreditsMode((prevState) => !prevState);
   }
   return (
-    <div>
+    <div className="main-container">
       <Paytable />
       <HandTitle title={"4 ACES WITH ANY 2,3,4"} />
       <Hand />
