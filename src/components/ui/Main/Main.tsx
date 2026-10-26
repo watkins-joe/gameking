@@ -27,6 +27,7 @@ const CREDIT_VALUE_CENTS = 25;
 const STARTING_BALANCE_CENTS = 10_000;
 const DEAL_CARD_DELAY_MS = 120;
 const BET_COLUMN_DELAY_MS = 180;
+const DEBUG_ROYAL_FLUSH_CARD_IDS = [8, 9, 10, 11, 12];
 const BASE_PAYOUT_COUNT_UP_MS = 1200;
 const EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS = 500;
 const MAX_PAYOUT_COUNT_UP_MS = 6700;
@@ -41,8 +42,9 @@ function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
   const [currentBetIndex, setCurrentBetIndex] = useState(DEFAULT_BETTING_INDEX);
   const [balanceCents, setBalanceCents] = useState(STARTING_BALANCE_CENTS);
-  const [displayBalanceCents, setDisplayBalanceCents] =
-    useState(STARTING_BALANCE_CENTS);
+  const [displayBalanceCents, setDisplayBalanceCents] = useState(
+    STARTING_BALANCE_CENTS,
+  );
   const [winCredits, setWinCredits] = useState(0);
   const [gameState, setGameState] = useState<GameState>(GAME_STATES.Game_Over);
   const [handState, setHandState] = useState<INITIAL_HAND_STATE_TYPE>(() =>
@@ -130,6 +132,24 @@ function Main() {
     revealNext();
   }
 
+  function getHandResult(cards: INITIAL_HAND_STATE_TYPE): HandResult | null {
+    const cardIds = cards.flatMap((card) =>
+      card.cardId === null ? [] : [card.cardId],
+    );
+    const rank =
+      cardIds.length === INITIAL_HAND_STATE.length
+        ? evaluateHand(cardIds)
+        : HAND_TYPES.HIGH_CARD;
+
+    return rank === HAND_TYPES.HIGH_CARD
+      ? null
+      : {
+          rank,
+          title: HAND_DISPLAY_NAMES[rank],
+          payoutCredits: PAYOUTS_PER_BET[currentBet][rank],
+        };
+  }
+
   function handleDeal() {
     if (
       gameState !== GAME_STATES.Game_Over ||
@@ -153,11 +173,13 @@ function Main() {
 
     const dealCards = () => {
       setIsBetting(false);
-      const dealtCards = shuffle(CARDS)
-        .slice(0, INITIAL_HAND_STATE.length)
-        .map((cardId) => ({ cardId, isHeld: false }));
+      const dealtCards = DEBUG_ROYAL_FLUSH_CARD_IDS.map((cardId) => ({
+        cardId,
+        isHeld: false,
+      }));
 
       showCards(dealtCards, () => {
+        setHandResult(getHandResult(dealtCards));
         setGameState(GAME_STATES.Awaiting_Holds);
       });
     };
@@ -191,9 +213,7 @@ function Main() {
     }
 
     const dealtCardIds = new Set(
-      handState.flatMap((card) =>
-        card.cardId === null ? [] : [card.cardId],
-      ),
+      handState.flatMap((card) => (card.cardId === null ? [] : [card.cardId])),
     );
     const replacementCards = shuffle(
       CARDS.filter((cardId) => !dealtCardIds.has(cardId)),
@@ -207,21 +227,7 @@ function Main() {
     setHandResult(null);
     setWinCredits(0);
     showCards(finalHand, (drawnCards) => {
-      const cardIds = drawnCards.flatMap((card) =>
-        card.cardId === null ? [] : [card.cardId],
-      );
-      const rank =
-        cardIds.length === INITIAL_HAND_STATE.length
-          ? evaluateHand(cardIds)
-          : HAND_TYPES.HIGH_CARD;
-      const result =
-        rank === HAND_TYPES.HIGH_CARD
-          ? null
-          : {
-              rank,
-              title: HAND_DISPLAY_NAMES[rank],
-              payoutCredits: PAYOUTS_PER_BET[currentBet][rank],
-            };
+      const result = getHandResult(drawnCards);
       const payoutCents = (result?.payoutCredits ?? 0) * CREDIT_VALUE_CENTS;
 
       setHandResult(result);
@@ -239,16 +245,12 @@ function Main() {
       const duration = Math.min(
         MAX_PAYOUT_COUNT_UP_MS,
         BASE_PAYOUT_COUNT_UP_MS +
-          (payoutCents / 10_000) *
-            EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS,
+          (payoutCents / 10_000) * EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS,
       );
       setIsCountingPayout(true);
 
       const countUp = (currentTime: number) => {
-        const progress = Math.min(
-          (currentTime - startTime) / duration,
-          1,
-        );
+        const progress = Math.min((currentTime - startTime) / duration, 1);
         setDisplayBalanceCents(
           Math.round(startingBalanceCents + payoutCents * progress),
         );
@@ -289,7 +291,7 @@ function Main() {
         activeBet={activeBetColumn}
         winningHand={handResult?.rank ?? null}
       />
-      <HandTitle title={handResult?.title ?? ""} />
+      <HandTitle gameState={gameState} title={handResult?.title ?? ""} />
       <InteractiveHand
         gameState={gameState}
         handState={[handState]}

@@ -13,7 +13,7 @@ function WinMeter({ winCredits }: WinMeterProps) {
       aria-live="polite"
       aria-hidden={!hasWin}
     >
-      WIN {hasWin ? Math.floor(winCredits).toLocaleString() : ""}
+      WIN {hasWin ? Math.floor(winCredits) : ""}
     </div>
   );
 }

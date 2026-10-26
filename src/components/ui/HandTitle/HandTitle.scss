@@ -1,6 +1,5 @@
 #title {
-  font-family: var(--font-casino);
-  font-size: 2rem;
+  color: white;
   text-align: center;
   width: 100%;
   height: 4rem;
@@ -9,4 +8,17 @@
   justify-content: center;
   letter-spacing: 0.05rem;
   line-height: 0;
+
+  .casino-font {
+    font-size: 2rem;
+  }
+
+  .initial-hand-rank {
+    color: white;
+    font-family: "Oxanium Extra Bold", monospace;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.05rem;
+    text-transform: uppercase;
+  }
 }
