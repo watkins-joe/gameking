@@ -132,7 +132,7 @@ interface DenomInfo {
   image: string;
 }
 
-type Denomination =
+export type Denomination =
   | "1c"
   | "2c"
   | "5c"

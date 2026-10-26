@@ -1,4 +1,4 @@
-import { DENOMINATIONS } from "../../../config/gameConfig";
+import { DENOMINATIONS, type Denomination } from "../../../config/gameConfig";
 import Button from "../Button/Button";
 import "./DenomModal.scss";
 
@@ -7,8 +7,8 @@ interface DenomModalProps {
 }
 
 function DenomModal({ handleDenomClick }: DenomModalProps) {
-  function handleDenomSelection() {
-    handleDenomChange();
+  function handleDenomSelection(denominationValue: Denomination) {
+    handleDenomChange(denominationValue);
     handleDenomClick();
   }
   return (
@@ -19,7 +19,7 @@ function DenomModal({ handleDenomClick }: DenomModalProps) {
           {Object.entries(DENOMINATIONS).map(([denomValue, denomInfo]) => (
             <div className="denom-option">
               <img
-                onClick={handleDenomClick}
+                onClick={() => handleDenomSelection(denomValue as Denomination)}
                 src={`/assets/ui/denoms/${denomInfo.image}`}
               />
             </div>
