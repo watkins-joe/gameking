@@ -22,11 +22,14 @@ const denomOptions = [
 function DenomModal() {
   return (
     <div className="denom-modal">
-      {denomOptions.map((denom) => (
-        <div className="denom-option">
-          <img src={`/assets/ui/denoms/${denom}.png`} />
-        </div>
-      ))}
+      <div>Choose denomination:</div>
+      <div className="denom-options">
+        {denomOptions.map((denom) => (
+          <div className="denom-option">
+            <img src={`/assets/ui/denoms/${denom}.png`} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
