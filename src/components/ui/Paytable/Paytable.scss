@@ -1,3 +1,11 @@
 .paytable {
-  font-family: "Eurostile";
+  font-family: var(--font-paytable);
+  font-size: 0.4rem;
+  background-color: #181767;
+  color: #cfe900;
+  border: 0.1rem solid #cfe900;
+  padding: 0.1rem;
+
+  &--container {
+  }
 }
