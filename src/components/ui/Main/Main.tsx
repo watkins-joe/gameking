@@ -67,7 +67,7 @@ function Main() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isBetting, setIsBetting] = useState(false);
   const [activeBetColumn, setActiveBetColumn] = useState<BetAmount | null>(
-    null,
+    BETTING_OPTIONS[DEFAULT_BETTING_INDEX],
   );
   const dealTimeoutRef = useRef<number | null>(null);
   const payoutAnimationFrameRef = useRef<number | null>(null);
@@ -113,7 +113,10 @@ function Main() {
       return;
     }
     const index = BETTING_OPTIONS.indexOf(amount);
-    if (index >= 0) setCurrentBetIndex(index);
+    if (index >= 0) {
+      setCurrentBetIndex(index);
+      setActiveBetColumn(amount);
+    }
   }
 
   function toggleCreditsMode() {
