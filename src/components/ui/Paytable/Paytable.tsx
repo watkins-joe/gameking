@@ -13,6 +13,7 @@ function Paytable() {
           <div>{HAND_DISPLAY_NAMES[hand]}</div>
         ))}
       </div>
+      <div className="payouts"></div>
       <div></div>
     </div>
   );
