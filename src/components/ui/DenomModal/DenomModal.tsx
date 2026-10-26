@@ -20,7 +20,15 @@ const denomOptions = [
   "5000d",
 ];
 
-function DenomModal() {
+interface DenomModalProps {
+  handleDenomClick: () => void;
+}
+
+function DenomModal({ handleDenomClick }: DenomModalProps) {
+  function handleDenomSelection() {
+    handleDenomChange();
+    handleDenomClick();
+  }
   return (
     <div className="denom-wrapper">
       <div className="denom-modal">
@@ -28,13 +36,16 @@ function DenomModal() {
         <div className="denom-options">
           {denomOptions.map((denom) => (
             <div className="denom-option">
-              <img src={`/assets/ui/denoms/${denom}.png`} />
+              <img
+                onClick={handleDenomClick}
+                src={`/assets/ui/denoms/${denom}.png`}
+              />
             </div>
           ))}
           <Button
             disabled={false}
             text="CLOSE"
-            onButtonClick={() => console.log("hi")}
+            onButtonClick={handleDenomClick}
           />
         </div>
       </div>

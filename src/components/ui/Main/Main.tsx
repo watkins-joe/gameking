@@ -65,6 +65,7 @@ function Main() {
   const [handResult, setHandResult] = useState<HandResult | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isBetting, setIsBetting] = useState(false);
+  const [isDenomModalOpen, setIsDenomModalOpen] = useState(false);
   const [activeBetColumn, setActiveBetColumn] = useState<BetAmount | null>(
     BETTING_OPTIONS[DEFAULT_BETTING_INDEX],
   );
@@ -331,6 +332,10 @@ function Main() {
     );
   }
 
+  function handleDenomClick() {
+    setIsDenomModalOpen((prevState) => !prevState);
+  }
+
   const isRoundActive =
     gameState === GAME_STATES.Awaiting_Holds ||
     isDrawing ||
@@ -339,7 +344,7 @@ function Main() {
 
   return (
     <div className="main-container">
-      <DenomModal />
+      {isDenomModalOpen && <DenomModal handleDenomClick={handleDenomClick} />}
       <Paytable
         activeBet={activeBetColumn}
         winningHand={handResult?.rank ?? null}
@@ -369,6 +374,7 @@ function Main() {
         isDrawing={isDrawing}
         onBetChange={changeBet}
         onDeal={handleDeal}
+        onDenomClick={handleDenomClick}
         onDraw={handleDraw}
         onResetBalance={handleResetBalance}
       />

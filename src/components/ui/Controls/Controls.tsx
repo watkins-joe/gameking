@@ -14,6 +14,7 @@ interface ControlsProps {
   onDeal: () => void;
   onDraw: () => void;
   onResetBalance: () => void;
+  onDenomClick: () => void;
 }
 
 function Controls({
@@ -26,6 +27,7 @@ function Controls({
   isDrawing,
   onBetChange,
   onDeal,
+  onDenomClick,
   onDraw,
   onResetBalance,
 }: ControlsProps) {
@@ -53,7 +55,7 @@ function Controls({
         <div className="controls--column">
           <div className="bet">BET {currentBet}</div>
           <div className="denom">
-            <img src="/assets/ui/denoms/25c.png" />
+            <img onClick={onDenomClick} src="/assets/ui/denoms/25c.png" />
           </div>
         </div>
         <div className="controls--column">

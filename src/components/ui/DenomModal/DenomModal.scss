@@ -1,7 +1,6 @@
 .denom {
-  &.wrapper {
-    background-color: black;
-    opacity: 0.5;
+  &-wrapper {
+    background-color: rgba(0, 0, 0, 0.5);
     height: 100%;
     width: 100%;
     z-index: 2;
