@@ -1,0 +1,16 @@
+.controls {
+  &--container {
+    display: flex;
+  }
+
+  &--column {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.game-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
