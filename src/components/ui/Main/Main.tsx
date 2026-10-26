@@ -146,6 +146,7 @@ function Main() {
     setWinCredits(0);
     setHandResult(null);
     setGameState(GAME_STATES.Game_Over);
+    setHandState(INITIAL_HAND_STATE.map((card) => ({ ...card })));
 
     setActiveBetColumn(null);
     setIsBetting(true);
@@ -161,24 +162,23 @@ function Main() {
       });
     };
 
-    const highlightBetColumn = (betIndex: number) => {
-      const bet = BETTING_OPTIONS[betIndex];
-      if (bet === undefined || betIndex > currentBet) {
-        dealCards();
-        return;
-      }
-
+    const highlightBetColumn = (bet: BetAmount) => {
       setActiveBetColumn(bet);
       dealTimeoutRef.current = window.setTimeout(() => {
-        if (betIndex === currentBet) {
+        if (bet === currentBet) {
           dealCards();
         } else {
-          highlightBetColumn(betIndex + 1);
+          const nextBet = BETTING_OPTIONS[BETTING_OPTIONS.indexOf(bet) + 1];
+          if (nextBet === undefined) {
+            dealCards();
+          } else {
+            highlightBetColumn(nextBet);
+          }
         }
       }, BET_COLUMN_DELAY_MS);
     };
 
-    highlightBetColumn(1);
+    highlightBetColumn(BETTING_OPTIONS[0]);
   }
 
   function handleDraw() {
