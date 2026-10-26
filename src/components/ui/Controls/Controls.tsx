@@ -12,7 +12,7 @@ function Controls() {
             onButtonClick={() => console.log("hi")}
           />
           <Button
-            disabled={false}
+            disabled
             text="MENU"
             onButtonClick={() => console.log("hi")}
           />
@@ -21,11 +21,11 @@ function Controls() {
           <div className="denom">
             <img src="/assets/ui/denoms/25c.png" />
           </div>
-          <Button
+          {/* <Button
             disabled={false}
             text="..."
             onButtonClick={() => console.log("hi")}
-          />
+          /> */}
         </div>
         <div className="controls--column">
           <Button
