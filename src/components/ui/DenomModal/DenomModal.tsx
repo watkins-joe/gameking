@@ -1,3 +1,4 @@
+import Button from "../Button/Button";
 import "./DenomModal.scss";
 
 const denomOptions = [
@@ -21,14 +22,21 @@ const denomOptions = [
 
 function DenomModal() {
   return (
-    <div className="denom-modal">
-      <div>Choose denomination:</div>
-      <div className="denom-options">
-        {denomOptions.map((denom) => (
-          <div className="denom-option">
-            <img src={`/assets/ui/denoms/${denom}.png`} />
-          </div>
-        ))}
+    <div className="denom-wrapper">
+      <div className="denom-modal">
+        <div>Choose denomination:</div>
+        <div className="denom-options">
+          {denomOptions.map((denom) => (
+            <div className="denom-option">
+              <img src={`/assets/ui/denoms/${denom}.png`} />
+            </div>
+          ))}
+          <Button
+            disabled={false}
+            text="CLOSE"
+            onButtonClick={() => console.log("hi")}
+          />
+        </div>
       </div>
     </div>
   );
