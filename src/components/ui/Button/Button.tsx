@@ -10,6 +10,7 @@ function Button({ disabled, text, onButtonClick }: ButtonProps) {
   return (
     <button
       className="casino-button"
+      type="button"
       disabled={disabled}
       onClick={onButtonClick}
     >

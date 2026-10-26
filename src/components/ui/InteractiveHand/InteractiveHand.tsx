@@ -3,19 +3,14 @@ import {
   useRef,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import holdCardSound from "../../../assets/sound/hold_card.mp3";
 import { GAME_STATES, type GameState } from "../../../config/gameConfig";
 import type { INITIAL_HAND_STATE_TYPE } from "../../../config/hands";
 import HoldSelectionGesture from "../../../utils/HoldSelectionGesture";
-import { playSound } from "../../../utils/playSound";
-import HandRank from "../HandRank/HandRank";
 import "./InteractiveHand.scss";
 
 interface InteractiveHandProps {
   gameState: GameState;
   handState: INITIAL_HAND_STATE_TYPE[];
-  handRank: string | null;
-  payout: number | null;
   isDrawing: boolean;
   onCardClick: (positionIndex: number) => void;
 }
@@ -23,8 +18,6 @@ interface InteractiveHandProps {
 function InteractiveHand({
   gameState,
   handState,
-  handRank,
-  payout,
   isDrawing,
   onCardClick,
 }: InteractiveHandProps) {
@@ -46,7 +39,6 @@ function InteractiveHand({
   function selectCard(index: number) {
     if (gameState !== GAME_STATES.Awaiting_Holds || isDrawing) return;
 
-    playSound(holdCardSound, "hold-card");
     onCardClick(index);
   }
 
@@ -91,20 +83,18 @@ function InteractiveHand({
             src={
               card.cardId === null
                 ? "/assets/cards/back.png"
-                : `/assets/cards/${card.cardId}.png`
+                : `/assets/cards/${String(card.cardId).padStart(2, "0")}.png`
             }
             alt={card.cardId === null ? "Card Back" : "Card Face"}
             draggable={false}
             onPointerDown={(event) => handleCardPointerDown(index, event)}
             onPointerEnter={(event) => handleCardPointerEnter(index, event)}
-            style={{ position: "relative" }}
           />
           {card.isHeld && card.cardId !== null && (
             <div className="hold-badge">HELD</div>
           )}
         </div>
       ))}
-      {handRank && <HandRank title={handRank} payout={payout} />}
     </div>
   );
 }

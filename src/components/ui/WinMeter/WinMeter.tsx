@@ -6,7 +6,9 @@ interface WinMeterProps {
 
 function WinMeter({ winAmount }: WinMeterProps) {
   return (
-    <div className="casino-font">{winAmount && `WIN ${{ winAmount }}`}</div>
+    <div className="casino-font">
+      WIN {winAmount > 0 ? `$${winAmount.toFixed(2)}` : ""}
+    </div>
   );
 }
 

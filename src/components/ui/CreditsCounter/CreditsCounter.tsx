@@ -1,14 +1,24 @@
 import "./CreditsCounter.css";
 
-export function CreditMeter({ amount, creditsMode, onModeChange }) {
+interface CreditMeterProps {
+  amount: number;
+  creditsMode: boolean;
+  onModeChange: () => void;
+}
+
+export function CreditMeter({
+  amount,
+  creditsMode,
+  onModeChange,
+}: CreditMeterProps) {
   return (
-    <div className="credit-meter" onClick={onModeChange}>
+    <button className="credit-meter" type="button" onClick={onModeChange}>
       {creditsMode && <span className="casino-font">CREDITS</span>}
       {creditsMode ? (
-        <output className="casino-font">{amount}</output>
+        <output className="casino-font">{(amount * 4).toFixed(0)}</output>
       ) : (
         <output className="casino-font">${amount.toFixed(2)}</output>
       )}
-    </div>
+    </button>
   );
 }

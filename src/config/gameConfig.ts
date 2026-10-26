@@ -37,11 +37,6 @@ export const HAND_DISPLAY_NAMES = {
   [HAND_TYPES.JACKS_OR_BETTER]: "JACKS OR BETTER",
 };
 
-interface CardState {
-  cardId: number | null;
-  isHeld: boolean;
-}
-
 type WinningHand = Exclude<
   (typeof HAND_TYPES)[keyof typeof HAND_TYPES],
   typeof HAND_TYPES.HIGH_CARD
@@ -126,7 +121,6 @@ export const PAYOUTS_PER_BET: Record<BetAmount, Record<WinningHand, number>> = {
 };
 
 export const GAME_STATES = {
-  Bonus_Game: "BONUS_GAME",
   Game_Over: "GAME_OVER",
   Awaiting_Holds: "AWAITING_HOLDS",
 } as const;

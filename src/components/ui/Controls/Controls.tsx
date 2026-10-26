@@ -1,48 +1,73 @@
+import { BETTING_OPTIONS, type BetAmount } from "../../../config/gameConfig";
 import Button from "../Button/Button";
 import "./Controls.scss";
 
-function Controls() {
+interface ControlsProps {
+  currentBet: BetAmount;
+  canDeal: boolean;
+  isRoundActive: boolean;
+  canDraw: boolean;
+  isDrawing: boolean;
+  onBetChange: (bet: BetAmount) => void;
+  onDeal: () => void;
+  onDraw: () => void;
+}
+
+function Controls({
+  currentBet,
+  canDeal,
+  isRoundActive,
+  canDraw,
+  isDrawing,
+  onBetChange,
+  onDeal,
+  onDraw,
+}: ControlsProps) {
+  const currentBetIndex = BETTING_OPTIONS.indexOf(currentBet);
+  const canChangeBet = !isRoundActive;
+
   return (
     <>
       <div className="controls--container">
         <div className="controls--column">
           <Button
-            disabled={false}
+            disabled={
+              !canChangeBet || currentBetIndex === BETTING_OPTIONS.length - 1
+            }
             text="BET UP"
-            onButtonClick={() => console.log("hi")}
+            onButtonClick={() => {
+              const nextBet = BETTING_OPTIONS[currentBetIndex + 1];
+              if (nextBet !== undefined) onBetChange(nextBet);
+            }}
           />
-          <Button
-            disabled
-            text="MENU"
-            onButtonClick={() => console.log("hi")}
-          />
+          <Button disabled text="MENU" onButtonClick={() => undefined} />
         </div>
         <div className="controls--column">
           <div className="denom">
             <img src="/assets/ui/denoms/25c.png" />
           </div>
-          {/* <Button
-            disabled={false}
-            text="..."
-            onButtonClick={() => console.log("hi")}
-          /> */}
+          <div className="bet">BET {currentBet}</div>
         </div>
         <div className="controls--column">
           <Button
-            disabled={false}
+            disabled={
+              !canChangeBet || currentBetIndex === BETTING_OPTIONS.length - 1
+            }
             text="BET MAX"
-            onButtonClick={() => console.log("hi")}
+            onButtonClick={() =>
+              onBetChange(BETTING_OPTIONS[BETTING_OPTIONS.length - 1])
+            }
           />
           <Button
-            disabled={false}
-            text="DEAL"
-            onButtonClick={() => console.log("hi")}
+            disabled={isDrawing || (canDraw ? false : !canDeal)}
+            text={canDraw ? "DRAW" : "DEAL"}
+            onButtonClick={canDraw ? onDraw : onDeal}
           />
         </div>
       </div>
       <div className="game-info">
         <div>DOUBLE DBL BONUS</div>
-        <div>GAME OVER</div>
+        <div>{canDraw ? "SELECT HOLDS" : "GAME OVER"}</div>
       </div>
     </>
   );
