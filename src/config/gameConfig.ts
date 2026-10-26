@@ -127,9 +127,34 @@ export const GAME_STATES = {
 
 export type GameState = (typeof GAME_STATES)[keyof typeof GAME_STATES];
 
-const DENOMINATIONS = {
+interface DenomInfo {
+  valueCents: number;
+  image: string;
+}
+
+type Denomination =
+  | "1c"
+  | "2c"
+  | "5c"
+  | "10c"
+  | "25c"
+  | "1d"
+  | "5d"
+  | "10d"
+  | "25d"
+  | "50d"
+  | "100d"
+  | "250d"
+  | "500d"
+  | "1000d"
+  | "2000d"
+  | "5000d";
+
+export const DENOMINATIONS: Record<Denomination, DenomInfo> = {
   "1c": { valueCents: 1, image: "1c.png" },
+  "2c": { valueCents: 2, image: "2c.png" },
   "5c": { valueCents: 5, image: "5c.png" },
+  "10c": { valueCents: 10, image: "10c.png" },
   "25c": { valueCents: 25, image: "25c.png" },
   "1d": { valueCents: 100, image: "1d.png" },
   "5d": { valueCents: 500, image: "5d.png" },
@@ -143,5 +168,3 @@ const DENOMINATIONS = {
   "2000d": { valueCents: 200000, image: "2000d.png" },
   "5000d": { valueCents: 500000, image: "5000d.png" },
 } as const;
-
-type Denomination = keyof typeof DENOMINATIONS;
