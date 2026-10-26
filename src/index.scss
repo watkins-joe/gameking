@@ -6,13 +6,23 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Eurostile";
+  src: url("/fonts/EurostileBlackRegular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --font-casino: "CasinoDisplay", Impact, sans-serif;
+  --font-paytable: "Eurostile", Impact, sans-serif;
 }
 
 html {
   font-family: var(--font-casino);
   font-weight: 400;
+  background-color: #1013ea;
 }
 
 .credits-font {
