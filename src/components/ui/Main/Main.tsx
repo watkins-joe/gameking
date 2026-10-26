@@ -37,9 +37,9 @@ const STARTING_BALANCE_CENTS = 100_000;
 const DEAL_CARD_DELAY_MS = 120;
 const BET_COLUMN_DELAY_MS = 180;
 const RESET_CONFIRMATION_TIMEOUT_MS = 5000;
-const BASE_PAYOUT_COUNT_UP_MS = 1200;
-const EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS = 500;
-const MAX_PAYOUT_COUNT_UP_MS = 6700;
+const BASE_PAYOUT_COUNT_UP_MS = 500;
+const PAYOUT_COUNT_UP_PER_CREDIT_MS = 8;
+const MAX_PAYOUT_COUNT_UP_MS = 4000;
 
 interface HandResult {
   rank: keyof typeof HAND_DISPLAY_NAMES;
@@ -331,7 +331,7 @@ function Main() {
       const duration = Math.min(
         MAX_PAYOUT_COUNT_UP_MS,
         BASE_PAYOUT_COUNT_UP_MS +
-          (payoutCents / 10_000) * EXTRA_PAYOUT_COUNT_UP_PER_HUNDRED_DOLLARS_MS,
+          result.payoutCredits * PAYOUT_COUNT_UP_PER_CREDIT_MS,
       );
       setIsCountingPayout(true);
 

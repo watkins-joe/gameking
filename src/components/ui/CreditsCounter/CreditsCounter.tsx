@@ -14,7 +14,10 @@ export function CreditMeter({
   onModeChange,
 }: CreditMeterProps) {
   const amountDollars = balanceCents / 100;
-  const credits = Math.floor(balanceCents / denominationValueCents);
+  const credits =
+    balanceCents === 0
+      ? 0
+      : Math.floor(balanceCents / denominationValueCents);
 
   return (
     <button className="credit-meter" type="button" onClick={onModeChange}>
