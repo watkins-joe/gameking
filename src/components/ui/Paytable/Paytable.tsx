@@ -2,7 +2,7 @@ import {
   BETTING_OPTIONS,
   HAND_DISPLAY_NAMES,
   PAYOUTS_PER_BET,
-} from "../../../constants/gameConfig";
+} from "../../../config/gameConfig";
 import "./Paytable.scss";
 
 type PayoutHand = keyof typeof HAND_DISPLAY_NAMES;

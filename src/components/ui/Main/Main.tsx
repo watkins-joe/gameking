@@ -1,8 +1,8 @@
 import { useState } from "react";
 import Controls from "../Controls/Controls";
 import { CreditMeter } from "../CreditsCounter/CreditsCounter";
-import Hand from "../Hand/Hand";
 import HandTitle from "../HandTitle/HandTitle";
+import Hand from "../InteractiveHand/InteractiveHand";
 import Paytable from "../Paytable/Paytable";
 import WinMeter from "../WinMeter/WinMeter";
 import "./Main.scss";
@@ -10,10 +10,9 @@ import "./Main.scss";
 function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
   const [amount, setAmount] = useState(100.0);
-
-  function toggleCreditsMode() {
+  const [handState, setHandState] = function toggleCreditsMode() {
     setIsCreditsMode((prevState) => !prevState);
-  }
+  };
   return (
     <div className="main-container">
       <Paytable />

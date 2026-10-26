@@ -42,16 +42,6 @@ interface CardState {
   isHeld: boolean;
 }
 
-export type INITIAL_HAND_STATE_TYPE = CardState[];
-
-export const INITIAL_HAND_STATE: CardState[] = [
-  { cardId: null, isHeld: false },
-  { cardId: null, isHeld: false },
-  { cardId: null, isHeld: false },
-  { cardId: null, isHeld: false },
-  { cardId: null, isHeld: false },
-];
-
 type WinningHand = Exclude<
   (typeof HAND_TYPES)[keyof typeof HAND_TYPES],
   typeof HAND_TYPES.HIGH_CARD
@@ -134,3 +124,11 @@ export const PAYOUTS_PER_BET: Record<BetAmount, Record<WinningHand, number>> = {
     [HAND_TYPES.JACKS_OR_BETTER]: 5,
   },
 };
+
+export const GAME_STATES = {
+  Bonus_Game: "BONUS_GAME",
+  Game_Over: "GAME_OVER",
+  Awaiting_Holds: "AWAITING_HOLDS",
+} as const;
+
+export type GameState = (typeof GAME_STATES)[keyof typeof GAME_STATES];
