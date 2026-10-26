@@ -18,7 +18,9 @@ function Controls() {
           />
         </div>
         <div className="controls--column">
-          <div>Denom</div>
+          <div className="denom">
+            <img src="/assets/ui/denoms/25c.png" />
+          </div>
           <Button
             disabled={false}
             text="..."

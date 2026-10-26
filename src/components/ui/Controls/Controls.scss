@@ -1,11 +1,21 @@
 .controls {
   &--container {
     display: flex;
+    gap: 0.2rem;
   }
 
   &--column {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    gap: 0.2rem;
+
+    .denom {
+      text-align: center;
+      img {
+        height: 4.5rem;
+      }
+    }
   }
 }
 

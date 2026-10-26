@@ -2,8 +2,8 @@
   font-family: var(--font-paytable);
   font-size: 0.8rem;
   background-color: #181767;
-  color: #cfe900;
-  border: 0.1rem solid #cfe900;
+  color: #fff800;
+  border: 0.1rem solid #fff800;
   width: 100%;
 
   .paytable-columns {
@@ -16,7 +16,7 @@
   .paytable-column {
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #cfe900;
+    border-right: 1px solid #fff800;
     padding: 0.15rem 0.1rem;
     white-space: nowrap;
 

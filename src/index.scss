@@ -14,6 +14,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Oxanium Extra Bold";
+  src: url("/fonts/Oxanium-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --font-casino: "CasinoDisplay", Impact, sans-serif;
   --font-paytable: "Eurostile Black", Impact, sans-serif;

@@ -19,12 +19,14 @@ function Main() {
       <Paytable />
       <HandTitle title={"4 ACES WITH ANY 2,3,4"} />
       <Hand />
-      <WinMeter />
-      <CreditMeter
-        creditsMode={isCreditsMode}
-        amount={amount}
-        onModeChange={toggleCreditsMode}
-      />
+      <div className="meters">
+        <WinMeter />
+        <CreditMeter
+          creditsMode={isCreditsMode}
+          amount={amount}
+          onModeChange={toggleCreditsMode}
+        />
+      </div>
       <Controls />
     </div>
   );
