@@ -1,0 +1,20 @@
+.denom-modal {
+  display: flex;
+  position: absolute;
+  background-color: grey;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.denom-option {
+  img {
+    height: 3rem;
+  }
+}

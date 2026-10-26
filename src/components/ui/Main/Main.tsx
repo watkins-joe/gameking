@@ -13,14 +13,15 @@ import {
   INITIAL_HAND_STATE,
   type INITIAL_HAND_STATE_TYPE,
 } from "../../../config/hands";
-import { CARDS, shuffle } from "../../../utils/cards";
-import { evaluateHand } from "../../../utils/evaluateHands";
 import {
   loadBalanceCents,
   saveBalanceCents,
 } from "../../../utils/balanceStorage";
+import { CARDS, shuffle } from "../../../utils/cards";
+import { evaluateHand } from "../../../utils/evaluateHands";
 import Controls from "../Controls/Controls";
 import { CreditMeter } from "../CreditsCounter/CreditsCounter";
+import DenomModal from "../DenomModal/DenomModal";
 import HandTitle from "../HandTitle/HandTitle";
 import InteractiveHand from "../InteractiveHand/InteractiveHand";
 import Paytable from "../Paytable/Paytable";
@@ -55,9 +56,7 @@ function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
   const [currentBetIndex, setCurrentBetIndex] = useState(DEFAULT_BETTING_INDEX);
   const [balanceCents, setBalanceCents] = useState(getInitialBalanceCents);
-  const [displayBalanceCents, setDisplayBalanceCents] = useState(
-    balanceCents,
-  );
+  const [displayBalanceCents, setDisplayBalanceCents] = useState(balanceCents);
   const [winCredits, setWinCredits] = useState(0);
   const [gameState, setGameState] = useState<GameState>(GAME_STATES.Game_Over);
   const [handState, setHandState] = useState<INITIAL_HAND_STATE_TYPE>(() =>
@@ -227,8 +226,8 @@ function Main() {
       const dealtCards = shuffle(CARDS)
         .slice(0, INITIAL_HAND_STATE.length)
         .map((cardId) => ({
-        cardId,
-        isHeld: false,
+          cardId,
+          isHeld: false,
         }));
 
       showCards(dealtCards, () => {
@@ -340,6 +339,7 @@ function Main() {
 
   return (
     <div className="main-container">
+      <DenomModal />
       <Paytable
         activeBet={activeBetColumn}
         winningHand={handResult?.rank ?? null}
