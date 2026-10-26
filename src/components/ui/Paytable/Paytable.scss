@@ -1,12 +1,39 @@
 .paytable {
   font-family: var(--font-paytable);
-  font-size: 0.4rem;
+  font-size: 0.8rem;
   background-color: #181767;
   color: #cfe900;
   border: 0.1rem solid #cfe900;
-  padding: 0.1rem;
+  //   padding: 0.1rem;
   width: 100%;
 
-  &--container {
+  .paytable-row {
+    display: grid;
+    grid-template-columns: 43% repeat(4, 10%) 17%;
+    width: 100%;
+
+    > div {
+      padding: 0 0.1rem;
+      white-space: nowrap;
+      text-align: right;
+      border-right: 1px solid #cfe900;
+
+      &:last-child {
+        border: none;
+      }
+    }
+
+    .paytable-hand {
+      display: flex;
+      align-items: baseline;
+      text-align: left;
+    }
+
+    .paytable-leader {
+      flex: 1;
+      min-width: 0.25rem;
+      margin-left: 0.15rem;
+      border-bottom: 2px dotted currentColor;
+    }
   }
 }
