@@ -67,8 +67,9 @@ function getInitialDenomination(): Denomination {
 
 function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
-  const [denomination, setDenomination] =
-    useState<Denomination>(getInitialDenomination);
+  const [denomination, setDenomination] = useState<Denomination>(
+    getInitialDenomination,
+  );
   const [currentBet, setCurrentBet] = useState<BetAmount>(
     BETTING_OPTIONS[DEFAULT_BETTING_INDEX],
   );
@@ -311,8 +312,7 @@ function Main() {
     setWinCredits(0);
     showCards(finalHand, (drawnCards) => {
       const result = getHandResult(drawnCards);
-      const payoutCents =
-        (result?.payoutCredits ?? 0) * denominationValueCents;
+      const payoutCents = (result?.payoutCredits ?? 0) * denominationValueCents;
 
       setHandResult(result);
       setBalanceCents((balance) => balance + payoutCents);
@@ -380,6 +380,7 @@ function Main() {
 
   return (
     <div className="main-container">
+      <header className="app-version">v{__APP_VERSION__}</header>
       {isDenomModalOpen && (
         <DenomModal
           selectedDenomination={denomination}
