@@ -8,16 +8,11 @@
   flex: 1;
   font-size: 1.5rem;
   box-shadow:
-    inset 1px 1px 0 #fffda0,
-    inset -2px -2px 0 #b49c00;
+    inset 5px 5px 0 #ffef86,
+    inset -5px -5px 0 #a69200;
   color: #151515;
   cursor: pointer;
-}
-
-.casino-button:active:not(:disabled) {
-  box-shadow:
-    inset -1px -1px 0 #fffda0,
-    inset 2px 2px 0 #8b7800;
+  border: 1px solid black;
 }
 
 .casino-button:disabled {
