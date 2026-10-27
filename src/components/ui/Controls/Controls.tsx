@@ -59,7 +59,11 @@ function Controls({
               }
             }}
           />
-          <Button disabled text="MENU" onButtonClick={() => undefined} />
+          <Button
+            disabled={isRoundActive}
+            text="MENU"
+            onButtonClick={() => undefined}
+          />
         </div>
         <div className="controls--column">
           <div className="bet">BET {currentBet}</div>
