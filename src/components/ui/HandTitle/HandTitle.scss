@@ -16,10 +16,11 @@
 
   .initial-hand-rank {
     color: white;
-    font-family: "Oxanium Extra Bold", monospace;
+    font-family: monospace;
     font-size: 1rem;
     font-weight: 800;
     letter-spacing: 0.05rem;
     text-transform: uppercase;
+    text-shadow: 2px 2px 0px rgb(0, 0, 0);
   }
 }
