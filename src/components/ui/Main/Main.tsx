@@ -429,6 +429,7 @@ function Main() {
         gameState={gameState}
         handState={[handState]}
         isDrawing={isDrawing}
+        game={selectedGame}
         onCardClick={handleCardClick}
       />
       <div id="meters">

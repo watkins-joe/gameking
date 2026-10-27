@@ -4,6 +4,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { GAME_STATES, type GameState } from "../../../config/gameConfig";
+import type { GameDefinition } from "../../../config/games";
 import type { INITIAL_HAND_STATE_TYPE } from "../../../config/hands";
 import HoldSelectionGesture from "../../../utils/HoldSelectionGesture";
 import "./InteractiveHand.scss";
@@ -12,6 +13,7 @@ interface InteractiveHandProps {
   gameState: GameState;
   handState: INITIAL_HAND_STATE_TYPE[];
   isDrawing: boolean;
+  game: GameDefinition;
   onCardClick: (positionIndex: number) => void;
 }
 
@@ -19,6 +21,7 @@ function InteractiveHand({
   gameState,
   handState,
   isDrawing,
+  game,
   onCardClick,
 }: InteractiveHandProps) {
   const holdGestureRef = useRef(new HoldSelectionGesture());
@@ -77,24 +80,27 @@ function InteractiveHand({
         gameState === GAME_STATES.Awaiting_Holds ? "is-holding" : ""
       }`}
     >
-      {handState[0].map((card, index) => (
-        <div className="card-container" key={index}>
-          <img
-            src={
-              card.cardId === null
-                ? "/assets/cards/back.png"
-                : `/assets/cards/${String(card.cardId).padStart(2, "0")}.png`
-            }
-            alt={card.cardId === null ? "Card Back" : "Card Face"}
-            draggable={false}
-            onPointerDown={(event) => handleCardPointerDown(index, event)}
-            onPointerEnter={(event) => handleCardPointerEnter(index, event)}
-          />
-          {card.isHeld && card.cardId !== null && (
-            <div className="hold-badge">HELD</div>
-          )}
-        </div>
-      ))}
+      {handState[0].map((card, index) => {
+        const asset =
+          card.cardId === null
+            ? { src: "/assets/cards/back.png", alt: "Card Back" }
+            : game.getCardAsset(card.cardId);
+
+        return (
+          <div className="card-container" key={index}>
+            <img
+              alt={asset.alt}
+              draggable={false}
+              onPointerDown={(event) => handleCardPointerDown(index, event)}
+              onPointerEnter={(event) => handleCardPointerEnter(index, event)}
+              src={asset.src}
+            />
+            {card.isHeld && card.cardId !== null && (
+              <div className="hold-badge">HELD</div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

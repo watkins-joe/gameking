@@ -17,6 +17,11 @@ export type GamePayoutTable = Record<
   Readonly<Record<HandRank, number>>
 >;
 
+export interface CardAsset {
+  src: string;
+  alt: string;
+}
+
 export interface GameDefinition {
   id: GameId;
   name: string;
@@ -24,6 +29,23 @@ export interface GameDefinition {
   handNames: Readonly<Record<HandRank, string>>;
   payoutsPerBet: GamePayoutTable;
   evaluateHand: (cardIds: readonly number[]) => HandRank;
+  getCardAsset: (cardId: number) => CardAsset;
+}
+
+function getStandardCardAsset(cardId: number): CardAsset {
+  const filename = `${String(cardId).padStart(2, "0")}.png`;
+  return { src: `/assets/cards/${filename}`, alt: "Card Face" };
+}
+
+function getDeucesWildCardAsset(cardId: number): CardAsset {
+  const isDeuce = cardId % 13 === 0;
+  const filename = isDeuce
+    ? `${cardId}w.png`
+    : `${String(cardId).padStart(2, "0")}.png`;
+  return {
+    src: `/assets/cards/${filename}`,
+    alt: isDeuce ? "Wild Deuce" : "Card Face",
+  };
 }
 
 export const DEFAULT_GAME_ID: GameId = "double-double-bonus";
@@ -36,6 +58,7 @@ export const GAMES: Record<GameId, GameDefinition> = {
     handNames: HAND_DISPLAY_NAMES,
     payoutsPerBet: PAYOUTS_PER_BET,
     evaluateHand,
+    getCardAsset: getStandardCardAsset,
   },
   "deuces-wild-double-bonus": {
     id: "deuces-wild-double-bonus",
@@ -44,5 +67,6 @@ export const GAMES: Record<GameId, GameDefinition> = {
     handNames: DEUCES_WILD_HAND_DISPLAY_NAMES,
     payoutsPerBet: DEUCES_WILD_PAYOUTS_PER_BET,
     evaluateHand: evaluateDeucesWildHand,
+    getCardAsset: getDeucesWildCardAsset,
   },
 };
