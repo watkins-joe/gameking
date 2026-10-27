@@ -4,13 +4,17 @@ import {
   DEFAULT_BETTING_INDEX,
   DENOMINATIONS,
   GAME_STATES,
-  HAND_DISPLAY_NAMES,
-  HAND_TYPES,
-  PAYOUTS_PER_BET,
   type BetAmount,
   type Denomination,
   type GameState,
 } from "../../../config/gameConfig";
+import {
+  DEFAULT_GAME_ID,
+  GAMES,
+  type GameDefinition,
+  type GameId,
+  type HandRank,
+} from "../../../config/games";
 import {
   INITIAL_HAND_STATE,
   type INITIAL_HAND_STATE_TYPE,
@@ -22,10 +26,10 @@ import {
   saveDenomination,
 } from "../../../utils/balanceStorage";
 import { CARDS, shuffle } from "../../../utils/cards";
-import { evaluateHand } from "../../../utils/evaluateHands";
 import Controls from "../Controls/Controls";
 import { CreditMeter } from "../CreditsCounter/CreditsCounter";
 import DenomModal from "../DenomModal/DenomModal";
+import GameMenu from "../GameMenu/GameMenu";
 import HandTitle from "../HandTitle/HandTitle";
 import InteractiveHand from "../InteractiveHand/InteractiveHand";
 import Paytable from "../Paytable/Paytable";
@@ -42,7 +46,7 @@ const PAYOUT_COUNT_UP_PER_CREDIT_MS = 8;
 const MAX_PAYOUT_COUNT_UP_MS = 4000;
 
 interface HandResult {
-  rank: keyof typeof HAND_DISPLAY_NAMES;
+  rank: HandRank;
   title: string;
   payoutCredits: number;
 }
@@ -67,6 +71,7 @@ function getInitialDenomination(): Denomination {
 
 function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
+  const [selectedGameId, setSelectedGameId] = useState<GameId>(DEFAULT_GAME_ID);
   const [denomination, setDenomination] = useState<Denomination>(
     getInitialDenomination,
   );
@@ -83,7 +88,9 @@ function Main() {
   const [handResult, setHandResult] = useState<HandResult | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isBetting, setIsBetting] = useState(false);
-  const [isDenomModalOpen, setIsDenomModalOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<
+    "denomination" | "game-selection" | null
+  >(null);
   const [activeBetColumn, setActiveBetColumn] = useState<BetAmount | null>(
     BETTING_OPTIONS[DEFAULT_BETTING_INDEX],
   );
@@ -95,6 +102,7 @@ function Main() {
   const [isCountingPayout, setIsCountingPayout] = useState(false);
 
   const denominationValueCents = DENOMINATIONS[denomination].valueCents;
+  const selectedGame = GAMES[selectedGameId];
   const betCostCents = currentBet * denominationValueCents;
   const canAffordBet = balanceCents >= betCostCents;
   const maxBet = BETTING_OPTIONS[BETTING_OPTIONS.length - 1];
@@ -211,21 +219,21 @@ function Main() {
   function getHandResult(
     cards: INITIAL_HAND_STATE_TYPE,
     bet: BetAmount = currentBet,
+    game: GameDefinition = selectedGame,
   ): HandResult | null {
     const cardIds = cards.flatMap((card) =>
       card.cardId === null ? [] : [card.cardId],
     );
-    const rank =
-      cardIds.length === INITIAL_HAND_STATE.length
-        ? evaluateHand(cardIds)
-        : HAND_TYPES.HIGH_CARD;
+    if (cardIds.length !== INITIAL_HAND_STATE.length) return null;
 
-    return rank === HAND_TYPES.HIGH_CARD
+    const rank = game.evaluateHand(cardIds);
+    const payoutCredits = game.payoutsPerBet[bet][rank];
+    return payoutCredits === undefined
       ? null
       : {
           rank,
-          title: HAND_DISPLAY_NAMES[rank],
-          payoutCredits: PAYOUTS_PER_BET[bet][rank],
+          title: game.handNames[rank],
+          payoutCredits,
         };
   }
 
@@ -262,7 +270,7 @@ function Main() {
         }));
 
       showCards(dealtCards, () => {
-        setHandResult(getHandResult(dealtCards, bet));
+        setHandResult(getHandResult(dealtCards, bet, selectedGame));
         setGameState(GAME_STATES.Awaiting_Holds);
       });
     };
@@ -364,7 +372,23 @@ function Main() {
   }
 
   function handleDenomClick() {
-    setIsDenomModalOpen((prevState) => !prevState);
+    setActiveModal("denomination");
+  }
+
+  function handleGameMenuClick() {
+    setActiveModal("game-selection");
+  }
+
+  function handleGameSelect(gameId: GameId) {
+    if (isRoundActive) return;
+
+    setSelectedGameId(gameId);
+    setHandResult(null);
+    setWinCredits(0);
+    setGameState(GAME_STATES.Game_Over);
+    setHandState(INITIAL_HAND_STATE.map((card) => ({ ...card })));
+    setActiveBetColumn(currentBet);
+    setActiveModal(null);
   }
 
   function handleDenominationChange(nextDenomination: Denomination) {
@@ -381,14 +405,22 @@ function Main() {
   return (
     <div className="main-container">
       <header className="app-version">v{__APP_VERSION__}</header>
-      {isDenomModalOpen && (
+      {activeModal === "denomination" && (
         <DenomModal
           selectedDenomination={denomination}
-          onClose={handleDenomClick}
+          onClose={() => setActiveModal(null)}
           onDenominationChange={handleDenominationChange}
         />
       )}
+      {activeModal === "game-selection" && (
+        <GameMenu
+          selectedGameId={selectedGameId}
+          onClose={() => setActiveModal(null)}
+          onGameSelect={handleGameSelect}
+        />
+      )}
       <Paytable
+        game={selectedGame}
         activeBet={activeBetColumn}
         winningHand={handResult?.rank ?? null}
       />
@@ -416,11 +448,13 @@ function Main() {
         isRoundActive={isRoundActive}
         isBetting={isBetting}
         isResetConfirmationActive={isResetConfirmationActive}
+        gameName={selectedGame.name}
         canDraw={gameState === GAME_STATES.Awaiting_Holds}
         isDrawing={isDrawing}
         onBetChange={changeBet}
         onDeal={handleDeal}
         onDenomClick={handleDenomClick}
+        onMenuClick={handleGameMenuClick}
         onDraw={handleDraw}
         onResetBalance={handleResetBalance}
       />
