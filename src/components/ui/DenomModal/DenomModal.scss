@@ -1,57 +1,31 @@
-.denom {
-  &-wrapper {
-    background-color: rgba(0, 0, 0, 0.5);
-    height: 100%;
-    width: 100%;
-    z-index: 2;
-    position: absolute;
+.denom-options {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.denom-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  border: 2px solid transparent;
+  border-radius: 0.4rem;
+  background: transparent;
+  cursor: pointer;
+
+  img {
+    display: block;
+    height: 3rem;
   }
 
-  &-modal {
-    color: white;
-    font-family: monospace;
-    font-size: 1rem;
-    font-weight: 600;
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    position: absolute;
-    background-color: #2d2d97;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 2;
-    width: calc(100% - 2rem);
-    padding: 1rem;
-    gap: 1rem;
-    border-radius: 1rem;
+  &.is-selected {
+    border-color: #ffde02;
   }
+}
 
-  &-option {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid transparent;
-    border-radius: 0.4rem;
-    padding: 0.2rem;
-    background: transparent;
-    cursor: pointer;
-
-    img {
-      display: block;
-      height: 3rem;
-    }
-
-    &.is-selected {
-      border-color: #ffde02;
-    }
-  }
-
-  &-options {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-  }
+.denom-modal > .casino-button {
+  min-height: 3rem;
 }

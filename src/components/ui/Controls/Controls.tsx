@@ -4,6 +4,7 @@ import {
   type BetAmount,
   type Denomination,
 } from "../../../config/gameConfig";
+import type { GameDefinition } from "../../../config/games";
 import Button from "../Button/Button";
 import "./Controls.scss";
 
@@ -15,6 +16,7 @@ interface ControlsProps {
   isRoundActive: boolean;
   isBetting: boolean;
   isResetConfirmationActive: boolean;
+  gameName: GameDefinition["name"];
   canDraw: boolean;
   isDrawing: boolean;
   onBetChange: (bet: BetAmount) => void;
@@ -22,6 +24,7 @@ interface ControlsProps {
   onDraw: () => void;
   onResetBalance: () => void;
   onDenomClick: () => void;
+  onMenuClick: () => void;
 }
 
 function Controls({
@@ -32,11 +35,13 @@ function Controls({
   isRoundActive,
   isBetting,
   isResetConfirmationActive,
+  gameName,
   canDraw,
   isDrawing,
   onBetChange,
   onDeal,
   onDenomClick,
+  onMenuClick,
   onDraw,
   onResetBalance,
 }: ControlsProps) {
@@ -59,7 +64,11 @@ function Controls({
               }
             }}
           />
-          <Button disabled text="MENU" onButtonClick={() => undefined} />
+          <Button
+            disabled={isRoundActive}
+            text="MENU"
+            onButtonClick={onMenuClick}
+          />
         </div>
         <div className="controls--column">
           <div className="bet">BET {currentBet}</div>
@@ -112,7 +121,7 @@ function Controls({
           onClick={onResetBalance}
           type="button"
         >
-          {isResetConfirmationActive ? "ARE YOU SURE?" : "DOUBLE DBL BONUS"}
+          {isResetConfirmationActive ? "ARE YOU SURE?" : gameName}
         </button>
         <div>{!isRoundActive && "GAME OVER"}</div>
       </div>
