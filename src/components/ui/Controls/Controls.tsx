@@ -114,7 +114,7 @@ function Controls({
         >
           {isResetConfirmationActive ? "ARE YOU SURE?" : "DOUBLE DBL BONUS"}
         </button>
-        <div>{canDraw ? "SELECT HOLDS" : "GAME OVER"}</div>
+        <div>{!isRoundActive && "GAME OVER"}</div>
       </div>
     </>
   );
