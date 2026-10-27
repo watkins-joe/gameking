@@ -2,8 +2,8 @@
   font-family: var(--font-paytable);
   font-size: 0.8rem;
   background-color: #181767;
-  color: #fff800;
-  border: 0.1rem solid #fff800;
+  color: #ffde02;
+  border: 0.1rem solid #ffde02;
   width: 100%;
 
   .paytable-columns {
@@ -16,7 +16,7 @@
   .paytable-column {
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #fff800;
+    border-right: 1px solid #ffde02;
     padding: 0.15rem 0.1rem;
     white-space: nowrap;
 
@@ -26,7 +26,7 @@
 
     &.is-active-bet {
       background-color: #ca0234;
-      color: #fff800;
+      color: #ffde02;
     }
 
     > div {
