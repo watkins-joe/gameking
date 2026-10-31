@@ -19,11 +19,12 @@ export function CreditMeter({
 
   return (
     <button className="credit-meter" type="button" onClick={onModeChange}>
-      {creditsMode && <span className="casino-font">CREDITS</span>}
       {creditsMode ? (
-        <output className="casino-font">{credits}</output>
+        <output className="casino-font">CREDIT {credits}</output>
       ) : (
-        <output className="casino-font">${amountDollars.toFixed(2)}</output>
+        <output className="casino-font">
+          CREDIT ${amountDollars.toFixed(2)}
+        </output>
       )}
     </button>
   );

@@ -1,10 +1,9 @@
-import {
-  DENOMINATIONS,
-  type Denomination,
-} from "../config/gameConfig";
+import { DENOMINATIONS, type Denomination } from "../config/gameConfig";
+import { GAMES, type GameId } from "../config/games";
 
 export const BALANCE_STORAGE_KEY = "gameking.balanceCents";
 export const DENOMINATION_STORAGE_KEY = "gameking.denomination";
+export const SELECTED_GAME_STORAGE_KEY = "gameking.selectedGame";
 
 type BalanceStorage = Pick<Storage, "getItem" | "setItem">;
 
@@ -21,7 +20,9 @@ export function loadBalanceCents(
     !Number.isSafeInteger(balanceCents) ||
     balanceCents < 0
   ) {
-    console.error("Stored bank balance is invalid; using the starting balance.");
+    console.error(
+      "Stored bank balance is invalid; using the starting balance.",
+    );
     return startingBalanceCents;
   }
 
@@ -56,4 +57,24 @@ export function saveDenomination(
   denomination: Denomination,
 ): void {
   storage.setItem(DENOMINATION_STORAGE_KEY, denomination);
+}
+export function loadSelectedGame(
+  storage: BalanceStorage,
+  defaultGame: GameId,
+): GameId {
+  const storedSelectedGame = storage.getItem(SELECTED_GAME_STORAGE_KEY);
+  if (storedSelectedGame === null) return defaultGame;
+
+  const game = Object.keys(GAMES).find((value) => value === storedSelectedGame);
+  if (game !== undefined) return game as GameId;
+
+  console.error("Stored denomination is invalid; using the default.");
+  return defaultGame;
+}
+
+export function saveSelectedGame(
+  storage: BalanceStorage,
+  selectedGame: GameId,
+): void {
+  storage.setItem(SELECTED_GAME_STORAGE_KEY, selectedGame);
 }
