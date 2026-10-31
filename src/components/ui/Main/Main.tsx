@@ -22,8 +22,10 @@ import {
 import {
   loadBalanceCents,
   loadDenomination,
+  loadSelectedGame,
   saveBalanceCents,
   saveDenomination,
+  saveSelectedGame,
 } from "../../../utils/balanceStorage";
 import { CARDS, shuffle } from "../../../utils/cards";
 import Controls from "../Controls/Controls";
@@ -35,7 +37,6 @@ import InteractiveHand from "../InteractiveHand/InteractiveHand";
 import Paytable from "../Paytable/Paytable";
 import WinMeter from "../WinMeter/WinMeter";
 import "./Main.scss";
-
 const DEFAULT_DENOMINATION: Denomination = "25c";
 const STARTING_BALANCE_CENTS = 100_000;
 const DEAL_CARD_DELAY_MS = 120;
@@ -69,9 +70,18 @@ function getInitialDenomination(): Denomination {
   }
 }
 
+function getInitialGame(): GameId {
+  try {
+    return loadSelectedGame(window.localStorage, DEFAULT_GAME_ID);
+  } catch (error) {
+    console.error("Unable to load the saved game.", error);
+    return DEFAULT_GAME_ID;
+  }
+}
+
 function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
-  const [selectedGameId, setSelectedGameId] = useState<GameId>(DEFAULT_GAME_ID);
+  const [selectedGameId, setSelectedGameId] = useState<GameId>(getInitialGame);
   const [denomination, setDenomination] = useState<Denomination>(
     getInitialDenomination,
   );
@@ -138,6 +148,14 @@ function Main() {
       console.error("Unable to save the selected denomination.", error);
     }
   }, [denomination]);
+
+  useEffect(() => {
+    try {
+      saveSelectedGame(window.localStorage, selectedGameId);
+    } catch (error) {
+      console.error("Unable to save the selected game.", error);
+    }
+  }, [selectedGameId]);
 
   function changeBet(amount: BetAmount) {
     if (
