@@ -27,6 +27,12 @@ import {
   saveDenomination,
   saveSelectedGame,
 } from "../../../utils/balanceStorage";
+import {
+  DEFAULT_SOUND_VOLUME,
+  loadSoundVolume,
+  saveSoundVolume,
+} from "../../../utils/volumeStorage";
+import { soundManager } from "../../../utils/soundManager";
 import { CARDS, shuffle } from "../../../utils/cards";
 import Controls from "../Controls/Controls";
 import { CreditMeter } from "../CreditsCounter/CreditsCounter";
@@ -36,6 +42,7 @@ import HandTitle from "../HandTitle/HandTitle";
 import InteractiveHand from "../InteractiveHand/InteractiveHand";
 import Paytable from "../Paytable/Paytable";
 import WinMeter from "../WinMeter/WinMeter";
+import VolumeModal from "../VolumeModal/VolumeModal";
 import "./Main.scss";
 const DEFAULT_DENOMINATION: Denomination = "25c";
 const STARTING_BALANCE_CENTS = 100_000;
@@ -79,8 +86,18 @@ function getInitialGame(): GameId {
   }
 }
 
+function getInitialSoundVolume(): number {
+  try {
+    return loadSoundVolume(window.localStorage);
+  } catch (error) {
+    console.error("Unable to load the saved sound volume.", error);
+    return DEFAULT_SOUND_VOLUME;
+  }
+}
+
 function Main() {
   const [isCreditsMode, setIsCreditsMode] = useState(false);
+  const [soundVolume, setSoundVolume] = useState(getInitialSoundVolume);
   const [selectedGameId, setSelectedGameId] = useState<GameId>(getInitialGame);
   const [denomination, setDenomination] = useState<Denomination>(
     getInitialDenomination,
@@ -99,9 +116,12 @@ function Main() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isBetting, setIsBetting] = useState(false);
   const [activeModal, setActiveModal] = useState<
-    "denomination" | "game-selection" | null
+    "denomination" | "game-selection" | "volume" | null
   >(null);
   const [activeBetColumn, setActiveBetColumn] = useState<BetAmount | null>(
+    BETTING_OPTIONS[DEFAULT_BETTING_INDEX],
+  );
+  const lastDealtBetRef = useRef<BetAmount>(
     BETTING_OPTIONS[DEFAULT_BETTING_INDEX],
   );
   const dealTimeoutRef = useRef<number | null>(null);
@@ -129,9 +149,25 @@ function Main() {
       if (resetConfirmationTimeoutRef.current !== null) {
         window.clearTimeout(resetConfirmationTimeoutRef.current);
       }
+      soundManager.stopLoop();
     },
     [],
   );
+
+  useEffect(() => {
+    void soundManager.preload();
+    const handleButtonClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const button = event.target.closest("button");
+      if (!button || button.disabled) return;
+
+      soundManager.unlock();
+      soundManager.play("click");
+    };
+
+    document.addEventListener("click", handleButtonClick);
+    return () => document.removeEventListener("click", handleButtonClick);
+  }, []);
 
   useEffect(() => {
     try {
@@ -156,6 +192,15 @@ function Main() {
       console.error("Unable to save the selected game.", error);
     }
   }, [selectedGameId]);
+
+  useEffect(() => {
+    soundManager.setVolume(soundVolume);
+    try {
+      saveSoundVolume(window.localStorage, soundVolume);
+    } catch (error) {
+      console.error("Unable to save the sound volume.", error);
+    }
+  }, [soundVolume]);
 
   function changeBet(amount: BetAmount) {
     if (
@@ -219,6 +264,7 @@ function Main() {
         return;
       }
 
+      soundManager.play("click");
       setHandState((current) =>
         current.map((card, index) =>
           index === cardIndex ? { ...cards[cardIndex] } : card,
@@ -267,6 +313,11 @@ function Main() {
       return;
     }
 
+    const shouldCountUpPaytable = lastDealtBetRef.current !== bet;
+    lastDealtBetRef.current = bet;
+
+    soundManager.unlock();
+
     setCurrentBet(bet);
     setBalanceCents((balance) => balance - wagerCostCents);
     setDisplayBalanceCents((balance) => balance - wagerCostCents);
@@ -275,7 +326,6 @@ function Main() {
     setGameState(GAME_STATES.Game_Over);
     setHandState(INITIAL_HAND_STATE.map((card) => ({ ...card })));
 
-    setActiveBetColumn(null);
     setIsBetting(true);
 
     const dealCards = () => {
@@ -288,13 +338,18 @@ function Main() {
         }));
 
       showCards(dealtCards, () => {
-        setHandResult(getHandResult(dealtCards, bet, selectedGame));
+        const result = getHandResult(dealtCards, bet, selectedGame);
+        if (result && result.payoutCredits > 0) {
+          soundManager.play("win");
+        }
+        setHandResult(result);
         setGameState(GAME_STATES.Awaiting_Holds);
       });
     };
 
     const highlightBetColumn = (highlightedBet: BetAmount) => {
       setActiveBetColumn(highlightedBet);
+      soundManager.play("click");
       dealTimeoutRef.current = window.setTimeout(() => {
         if (highlightedBet === bet) {
           dealCards();
@@ -310,6 +365,13 @@ function Main() {
       }, BET_COLUMN_DELAY_MS);
     };
 
+    if (!shouldCountUpPaytable) {
+      setActiveBetColumn(bet);
+      dealCards();
+      return;
+    }
+
+    setActiveBetColumn(null);
     highlightBetColumn(BETTING_OPTIONS[0]);
   }
 
@@ -321,6 +383,8 @@ function Main() {
     ) {
       return;
     }
+
+    soundManager.unlock();
 
     const dealtCardIds = new Set(
       handState.flatMap((card) => (card.cardId === null ? [] : [card.cardId])),
@@ -358,6 +422,7 @@ function Main() {
           result.payoutCredits * PAYOUT_COUNT_UP_PER_CREDIT_MS,
       );
       setIsCountingPayout(true);
+      soundManager.playLoop();
 
       const countUp = (currentTime: number) => {
         const progress = Math.min((currentTime - startTime) / duration, 1);
@@ -370,6 +435,8 @@ function Main() {
           payoutAnimationFrameRef.current = requestAnimationFrame(countUp);
         } else {
           payoutAnimationFrameRef.current = null;
+          soundManager.stopLoop();
+          soundManager.play("creditCountEnd");
           setDisplayBalanceCents(startingBalanceCents + payoutCents);
           setWinCredits(result.payoutCredits);
           setIsCountingPayout(false);
@@ -382,6 +449,7 @@ function Main() {
 
   function handleCardClick(positionIndex: number) {
     if (gameState !== GAME_STATES.Awaiting_Holds || isDrawing) return;
+    soundManager.play("click");
     setHandState((cards) =>
       cards.map((card, index) =>
         index === positionIndex ? { ...card, isHeld: !card.isHeld } : card,
@@ -395,6 +463,15 @@ function Main() {
 
   function handleGameMenuClick() {
     setActiveModal("game-selection");
+  }
+
+  function handleVolumeClick() {
+    setActiveModal("volume");
+  }
+
+  function handleSoundVolumeChange(volume: number) {
+    setSoundVolume(volume);
+    soundManager.setVolume(volume);
   }
 
   function handleGameSelect(gameId: GameId) {
@@ -423,6 +500,13 @@ function Main() {
   return (
     <div className="main-container">
       <header className="app-version">v{__APP_VERSION__}</header>
+      {activeModal === "volume" && (
+        <VolumeModal
+          volume={soundVolume}
+          onClose={() => setActiveModal(null)}
+          onVolumeChange={handleSoundVolumeChange}
+        />
+      )}
       {activeModal === "denomination" && (
         <DenomModal
           selectedDenomination={denomination}
@@ -474,6 +558,7 @@ function Main() {
         onDeal={handleDeal}
         onDenomClick={handleDenomClick}
         onMenuClick={handleGameMenuClick}
+        onVolumeClick={handleVolumeClick}
         onDraw={handleDraw}
         onResetBalance={handleResetBalance}
       />
