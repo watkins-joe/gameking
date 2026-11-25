@@ -471,7 +471,9 @@ function Main() {
 
   function handleSoundVolumeChange(volume: number) {
     setSoundVolume(volume);
+    soundManager.unlock();
     soundManager.setVolume(volume);
+    soundManager.play("click");
   }
 
   function handleGameSelect(gameId: GameId) {
