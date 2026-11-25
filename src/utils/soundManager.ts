@@ -1,7 +1,6 @@
 const SOUND_URLS = {
   click: "/assets/sounds/click.ogg",
-  creditCount: "/assets/sounds/crdtlp2l.ogg",
-  creditCountEnd: "/assets/sounds/lstone2r.ogg",
+  winCounter: "/assets/sounds/winCounter.ogg",
   win: "/assets/sounds/win.ogg",
 } as const;
 
@@ -121,15 +120,15 @@ class SoundManager {
 
   playLoop(): void {
     try {
-      const buffer = this.buffers.get("creditCount");
+      const buffer = this.buffers.get("winCounter");
       if (!buffer) {
-        console.warn('Sound "creditCount" is not preloaded yet.');
+        console.warn('Sound "winCounter" is not preloaded yet.');
         return;
       }
 
       const context = this.getContext();
       if (context.state === "suspended" || !this.isUnlocked) {
-        console.warn('Sound "creditCount" cannot play before audio is unlocked.');
+        console.warn('Sound "winCounter" cannot play before audio is unlocked.');
         return;
       }
 
@@ -141,7 +140,7 @@ class SoundManager {
       source.start();
       this.loopingSource = source;
     } catch (error) {
-      console.error('Unable to loop sound "creditCount".', error);
+      console.error('Unable to loop sound "winCounter".', error);
     }
   }
 

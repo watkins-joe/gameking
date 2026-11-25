@@ -27,13 +27,17 @@ import {
   saveDenomination,
   saveSelectedGame,
 } from "../../../utils/balanceStorage";
+import { CARDS, shuffle } from "../../../utils/cards";
+import {
+  ROYAL_FLUSH_DEBUG_HAND,
+  THREE_OF_A_KIND_DEBUG_HAND,
+} from "../../../utils/debugHands";
+import { soundManager } from "../../../utils/soundManager";
 import {
   DEFAULT_SOUND_VOLUME,
   loadSoundVolume,
   saveSoundVolume,
 } from "../../../utils/volumeStorage";
-import { soundManager } from "../../../utils/soundManager";
-import { CARDS, shuffle } from "../../../utils/cards";
 import Controls from "../Controls/Controls";
 import { CreditMeter } from "../CreditsCounter/CreditsCounter";
 import DenomModal from "../DenomModal/DenomModal";
@@ -41,22 +45,35 @@ import GameMenu from "../GameMenu/GameMenu";
 import HandTitle from "../HandTitle/HandTitle";
 import InteractiveHand from "../InteractiveHand/InteractiveHand";
 import Paytable from "../Paytable/Paytable";
-import WinMeter from "../WinMeter/WinMeter";
 import VolumeModal from "../VolumeModal/VolumeModal";
+import WinMeter from "../WinMeter/WinMeter";
 import "./Main.scss";
 const DEFAULT_DENOMINATION: Denomination = "25c";
 const STARTING_BALANCE_CENTS = 100_000;
 const DEAL_CARD_DELAY_MS = 120;
 const BET_COLUMN_DELAY_MS = 180;
 const RESET_CONFIRMATION_TIMEOUT_MS = 5000;
-const BASE_PAYOUT_COUNT_UP_MS = 500;
-const PAYOUT_COUNT_UP_PER_CREDIT_MS = 8;
-const MAX_PAYOUT_COUNT_UP_MS = 4000;
 
 interface HandResult {
   rank: HandRank;
   title: string;
   payoutCredits: number;
+}
+
+const COUNT_UP_TIERS = [
+  { upTo: 100, creditsPerSecond: 16 },
+  { upTo: 500, creditsPerSecond: 40 }, // placeholder
+  { upTo: 2000, creditsPerSecond: 70 }, // placeholder
+  { upTo: Infinity, creditsPerSecond: 169 }, // royal flush range
+];
+
+function getCountUpCreditsPerSecond(totalCredits: number) {
+  return COUNT_UP_TIERS.find((t) => totalCredits <= t.upTo)!.creditsPerSecond;
+}
+
+function getPayoutCountUpProgress(elapsedMs: number, totalCredits: number) {
+  const rate = getCountUpCreditsPerSecond(totalCredits);
+  return Math.min(1, (elapsedMs * rate) / 1000 / totalCredits);
 }
 
 function getInitialBalanceCents(): number {
@@ -133,6 +150,13 @@ function Main() {
 
   const denominationValueCents = DENOMINATIONS[denomination].valueCents;
   const selectedGame = GAMES[selectedGameId];
+  const isRoyalFlushDebug =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).get("debug") === "royal-flush";
+  const isThreeOfAKindDebug =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).get("debug") ===
+      "three-of-a-kind";
   const betCostCents = currentBet * denominationValueCents;
   const canAffordBet = balanceCents >= betCostCents;
   const maxBet = BETTING_OPTIONS[BETTING_OPTIONS.length - 1];
@@ -330,12 +354,15 @@ function Main() {
 
     const dealCards = () => {
       setIsBetting(false);
-      const dealtCards = shuffle(CARDS)
-        .slice(0, INITIAL_HAND_STATE.length)
-        .map((cardId) => ({
-          cardId,
-          isHeld: false,
-        }));
+      const dealtCardIds = isRoyalFlushDebug
+        ? ROYAL_FLUSH_DEBUG_HAND
+        : isThreeOfAKindDebug
+          ? THREE_OF_A_KIND_DEBUG_HAND
+          : shuffle(CARDS).slice(0, INITIAL_HAND_STATE.length);
+      const dealtCards = dealtCardIds.map((cardId) => ({
+        cardId,
+        isHeld: isRoyalFlushDebug,
+      }));
 
       showCards(dealtCards, () => {
         const result = getHandResult(dealtCards, bet, selectedGame);
@@ -416,16 +443,15 @@ function Main() {
 
       const startingBalanceCents = displayBalanceCents;
       const startTime = performance.now();
-      const duration = Math.min(
-        MAX_PAYOUT_COUNT_UP_MS,
-        BASE_PAYOUT_COUNT_UP_MS +
-          result.payoutCredits * PAYOUT_COUNT_UP_PER_CREDIT_MS,
-      );
       setIsCountingPayout(true);
       soundManager.playLoop();
 
       const countUp = (currentTime: number) => {
-        const progress = Math.min((currentTime - startTime) / duration, 1);
+        const progress = getPayoutCountUpProgress(
+          currentTime - startTime,
+          result.payoutCredits,
+        );
+
         setDisplayBalanceCents(
           Math.round(startingBalanceCents + payoutCents * progress),
         );
@@ -436,7 +462,6 @@ function Main() {
         } else {
           payoutAnimationFrameRef.current = null;
           soundManager.stopLoop();
-          soundManager.play("creditCountEnd");
           setDisplayBalanceCents(startingBalanceCents + payoutCents);
           setWinCredits(result.payoutCredits);
           setIsCountingPayout(false);
